@@ -1,0 +1,13 @@
+{
+  "name": "radar-klyrex-secuencia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secuencia automatica de email para los leads de Radar Klyrex",
+  "main": "send-sequence.js",
+  "scripts": {
+    "start": "node send-sequence.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}
