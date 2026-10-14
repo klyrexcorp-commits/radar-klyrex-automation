@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar Klyrex</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --bg:#090b0f; --bg-2:#05060a; --surface:#12151c; --surface-2:#181c25; --border:#262b36;
+    --text:#eef1f6; --text-dim:#8c94a3;
+    --accent:#e3a63f; --accent-strong:#f6c569; --accent-ink:#0d0f13; --accent-bg:rgba(227,166,63,.14);
+    --seg-auto:#4dd6c8; --seg-auto-bg:rgba(77,214,200,.13);
+    --seg-web:#f0789f; --seg-web-bg:rgba(240,120,159,.13);
+    --node-blue:#3987e5; --node-blue-bg:rgba(108,162,242,.14);
+    --node-orange:#d95926; --node-orange-bg:rgba(240,146,79,.14);
+    --ok:#5fcb86; --ok-bg:rgba(95,203,134,.13);
+    --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
+    --grid-dot:rgba(255,255,255,.045);
+    --shadow:0 2px 4px rgba(0,0,0,.45), 0 24px 44px -20px rgba(0,0,0,.7);
+    --glow:rgba(227,166,63,.5);
+    --sidebar-w:226px;
+    --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
+    --cat-5:#d55181; --cat-6:#008300; --cat-7:#9085e9; --cat-8:#e66767;
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0; height:100%}
+  body{
+    background-color:var(--bg); color:var(--text);
+    background-image:radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size:22px 22px;
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+  }
+  h1,h2,h3,.display{font-family:"Sora", system-ui, sans-serif; text-wrap:balance}
+  .mono, .tabular{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
+  button{font-family:inherit}
+  ::selection{background:var(--accent-bg)}
+  a{color:inherit}
+
+  /* ---- Radar mark (logo + hub) ---- */
+  .radar-mark{
+    width:44px; height:44px; flex:none; border-radius:50%; position:relative;
+    border:1px solid var(--border); overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 29%, var(--border) 30% 31%, transparent 32%),
+      radial-gradient(circle at 50% 50%, transparent 0 54%, var(--border) 55% 56%, transparent 57%),
+      var(--surface-2);
+  }
+  .radar-mark::before{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, var(--accent) 0deg, transparent 70deg 360deg);
+    opacity:.6; animation:radar-sweep 7s linear infinite; transform-origin:50% 50%;
+  }
+  .radar-mark::after{
+    content:''; position:absolute; left:50%; top:50%; width:5px; height:5px; margin:-2.5px;
+    background:var(--accent); border-radius:50%;
+    box-shadow:-14px -6px 0 -1.5px var(--seg-auto), 11px 9px 0 -1.5px var(--seg-web);
+  }
+  .radar-mark.lg{
+    width:300px; height:300px; border-color:rgba(255,255,255,.08);
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 29%, rgba(255,255,255,.08) 30% 31%, transparent 32%),
+      radial-gradient(circle at 50% 50%, transparent 0 54%, rgba(255,255,255,.08) 55% 56%, transparent 57%),
+      radial-gradient(circle at 50% 50%, transparent 0 78%, rgba(255,255,255,.06) 79% 80%, transparent 81%),
+      radial-gradient(circle at 50% 50%, var(--surface-2) 0%, var(--bg-2) 100%);
+    box-shadow:0 0 0 1px rgba(255,255,255,.03), 0 0 80px -10px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6);
+  }
+  .radar-mark.lg::before{
+    background:conic-gradient(from 0deg, var(--accent) 0deg, rgba(227,166,63,.35) 18deg, transparent 50deg 360deg);
+    filter:drop-shadow(0 0 18px var(--glow));
+    opacity:.85;
+  }
+  .radar-mark.lg::after{ width:10px; height:10px; margin:-5px;
+    box-shadow:0 0 10px 2px var(--glow),
+      -94px -40px 0 -3px var(--seg-auto), 74px 60px 0 -3px var(--seg-web), 10px -98px 0 -3px var(--node-blue), -42px 92px 0 -3px var(--node-orange);
+  }
+  @keyframes radar-sweep{ to{ transform:rotate(360deg); } }
+  @keyframes beacon-pulse{ 0%,100%{ box-shadow:0 0 0 1px rgba(255,255,255,.03), 0 0 80px -10px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6); } 50%{ box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 0 110px -5px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6); } }
+  .radar-mark.lg{ animation:beacon-pulse 4s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .radar-mark::before{ animation:none } .radar-mark.lg{ animation:none } }
+
+  /* ---- Hub (portada) ---- */
+  #hubView{
+    min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:36px; padding:60px 20px 80px; text-align:center; position:relative; overflow:hidden;
+    background:
+      radial-gradient(1px 1px at 8% 15%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 22% 68%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1.5px 1.5px at 35% 30%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 48% 80%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 62% 20%, rgba(255,255,255,.45), transparent),
+      radial-gradient(1px 1px at 75% 55%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 88% 35%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 93% 75%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,.25), transparent),
+      radial-gradient(ellipse at 50% 0%, rgba(227,166,63,.08), transparent 60%);
+  }
+  #hubView[hidden]{ display:none; }
+  .hub-eyebrow{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700}
+  .hub-title{font-size:34px; font-weight:800; margin:4px 0 0; letter-spacing:-.02em}
+  .hub-sub{font-size:14px; color:var(--text-dim); max-width:440px; margin-top:4px}
+  .hub-radar-wrap{position:relative; width:480px; height:480px; margin-top:10px; display:flex; align-items:center; justify-content:center}
+  .hub-node{
+    position:absolute; top:50%; left:50%; width:104px; height:104px; margin:-52px;
+    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1));
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    background:rgba(18,21,28,.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.08); border-top:3px solid var(--node-color);
+    border-radius:14px; box-shadow:var(--shadow); cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; padding:10px;
+  }
+  .hub-node:hover{
+    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1)) scale(1.08);
+    border-color:var(--node-color);
+    box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 20px 40px -16px rgba(0,0,0,.7), 0 0 24px -6px var(--node-color);
+  }
+  .hub-node .hn-icon{font-size:20px; line-height:1}
+  .hub-node .hn-label{font-size:12.5px; font-weight:700; color:var(--text)}
+  .hub-node .hn-count{font-size:10.5px; color:var(--text-dim); font-family:"IBM Plex Mono",monospace}
+  @media (max-width:640px){
+    .hub-radar-wrap{width:auto; height:auto; display:block}
+    .hub-radar-wrap .radar-mark.lg{display:none}
+    .hub-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:380px; margin:0 auto}
+    .hub-grid .hub-node{position:static; transform:none !important; margin:0; width:auto; height:auto; padding:16px 10px}
+  }
+  @media (min-width:641px){ .hub-grid{display:contents} }
+
+  /* ---- App shell ---- */
+  #appShell{display:flex; min-height:100%}
+  #appShell[hidden]{ display:none; }
+  .sidebar{
+    width:var(--sidebar-w); flex:none; background:var(--surface); border-right:1px solid var(--border);
+    padding:18px 12px; display:flex; flex-direction:column; gap:14px; position:sticky; top:0; height:100vh;
+    overflow-y:auto;
+  }
+  .sidebar-brand{display:flex; align-items:center; gap:10px; padding:4px 6px 14px; cursor:pointer; border-bottom:1px solid var(--border); margin-bottom:2px}
+  .sidebar-brand .radar-mark{width:36px; height:36px}
+  .sidebar-brand .sb-name{font-family:"Sora",sans-serif; font-weight:700; font-size:15px}
+  .sidebar-brand .sb-sub{font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em; font-weight:600}
+  .sidebar nav{display:flex; flex-direction:column; gap:2px}
+  .sidebar nav button{
+    display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:9px; border:none; background:none;
+    color:var(--text-dim); font-weight:600; font-size:13px; text-align:left; cursor:pointer; width:100%;
+  }
+  .sidebar nav button .nav-ic{width:18px; text-align:center; font-size:14px}
+  .sidebar nav button:hover{background:var(--surface-2); color:var(--text)}
+  .sidebar nav button.active{background:var(--accent-bg); color:var(--accent-strong)}
+  .sidebar-foot{margin-top:auto; font-size:10.5px; color:var(--text-dim); padding:10px 6px 2px; border-top:1px solid var(--border)}
+
+  .main-content{flex:1; min-width:0; padding:22px 28px 48px}
+  @keyframes view-slide-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .main-content.transitioning{ animation:view-slide-in .32s cubic-bezier(.16,1,.3,1); }
+  @keyframes hub-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+  #hubView.transitioning{ animation:hub-fade-in .4s ease; }
+  @media (prefers-reduced-motion:reduce){ .main-content.transitioning, #hubView.transitioning{ animation:none } }
+
+  header.top{
+    display:flex; flex-wrap:wrap; gap:14px 24px; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .page-title{font-size:21px; font-weight:700; margin:0}
+  .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+  input[type="text"], input[type="search"], input[type="tel"], input[type="email"], input[type="date"], input[type="number"], select, textarea{
+    background:var(--surface); color:var(--text); border:1px solid var(--border);
+    border-radius:8px; padding:8px 11px; font-size:13.5px; font-family:inherit;
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible{
+    outline:2px solid var(--accent); outline-offset:1px;
+  }
+  .search{min-width:220px}
+
+  .btn{
+    border:1px solid var(--border); background:var(--surface); color:var(--text);
+    border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:600; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:hover{border-color:var(--text-dim)}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+  .btn.primary:hover{background:var(--accent-strong); border-color:var(--accent-strong)}
+  .btn.ghost{border-color:transparent; background:transparent}
+  .btn.danger{color:var(--crit); border-color:var(--crit-bg)}
+  .btn.sm{padding:5px 10px; font-size:12.5px}
+
+  .tabs{display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:3px}
+  .tabs button{
+    border:none; background:transparent; color:var(--text-dim); padding:6px 13px; border-radius:6px;
+    font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .tabs button.active{background:var(--surface); color:var(--text); box-shadow:var(--shadow)}
+
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px}
+  .stat{
+    position:relative; overflow:hidden;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:15px 16px 13px;
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .stat::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); }
+  .stat .n{font-size:25px; font-weight:600; font-family:"IBM Plex Mono",monospace}
+  .stat .l{font-size:11.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; font-weight:600}
+  .stat.auto::before{background:var(--seg-auto)} .stat.auto .n{color:var(--seg-auto)}
+  .stat.web::before{background:var(--seg-web)} .stat.web .n{color:var(--seg-web)}
+  .stat.ok::before{background:var(--ok)} .stat.ok .n{color:var(--ok)}
+  .stat.blue::before{background:var(--node-blue)} .stat.blue .n{color:var(--node-blue)}
+
+  .board{display:flex; gap:14px; overflow-x:auto; padding-bottom:10px}
+  .col{
+    flex:0 0 240px; background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+    display:flex; flex-direction:column; max-height:calc(100vh - 260px); min-height:220px;
+  }
+  .col-head{ padding:11px 13px 9px; display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:13px; border-bottom:1px solid var(--border); }
+  .col-head.ok span:first-child{color:var(--ok)}
+  .col-head.crit span:first-child{color:var(--crit)}
+  .col-head .count{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:99px; padding:1px 8px; }
+  .col-body{padding:9px; display:flex; flex-direction:column; gap:9px; overflow-y:auto}
+  .col.dragover{outline:2px dashed var(--accent); outline-offset:-2px}
+  .col-empty{color:var(--text-dim); font-size:12px; text-align:center; padding:18px 6px}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--border);
+    border-radius:10px; padding:11px 12px 11px 10px; box-shadow:var(--shadow); cursor:pointer;
+    display:flex; flex-direction:column; gap:7px; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .card:hover{border-color:var(--text-dim); transform:translateY(-1px)}
+  .card-top{display:flex; justify-content:space-between; gap:8px; align-items:center}
+  .card-name{font-weight:600; font-size:13.5px; line-height:1.25}
+  .score-ring{ width:32px; height:32px; flex:none; border-radius:50%; background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0); display:flex; align-items:center; justify-content:center; }
+  .score-ring-inner{ width:23px; height:23px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--text); }
+  .chips{display:flex; gap:6px; flex-wrap:wrap}
+  .chip{ font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
+  .chip.auto{background:var(--seg-auto-bg); color:var(--seg-auto)}
+  .chip.web{background:var(--seg-web-bg); color:var(--seg-web)}
+  .chip.toque{background:var(--surface-2); color:var(--text-dim)}
+  .card-meta{font-size:11.5px; color:var(--text-dim); display:flex; flex-direction:column; gap:2px}
+  .card select.status-quick{ width:100%; font-size:11.5px; padding:4px 7px; margin-top:2px; }
+
+  .empty-state{ text-align:center; padding:60px 20px; color:var(--text-dim); border:1px dashed var(--border); border-radius:14px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(10,13,18,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
+  .overlay[hidden]{ display:none; }
+  .modal{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px; }
+  .modal h2{font-size:18px; margin:0}
+  .field{display:flex; flex-direction:column; gap:4px}
+  .field label{font-size:11.5px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  textarea{resize:vertical; min-height:60px}
+  .modal-actions{display:flex; justify-content:space-between; gap:10px; margin-top:4px; align-items:center}
+  .modal-actions .right{display:flex; gap:8px}
+
+  /* Flujo */
+  .flow{display:flex; align-items:stretch; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:20px}
+  .flow-step{ flex:0 0 180px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px; }
+  .flow-step .num{ width:22px; height:22px; border-radius:50%; background:var(--accent-bg); color:var(--accent-strong); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+  .flow-step h4{margin:0; font-size:13px; font-weight:600}
+  .flow-step p{margin:0; font-size:11.5px; color:var(--text-dim); line-height:1.4}
+  .flow-arrow{flex:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:16px}
+  .run-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px}
+  .run-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px}
+  .run-status-badge{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:99px; white-space:nowrap}
+  .run-status-badge.ok{background:var(--ok-bg); color:var(--ok)}
+  .run-status-badge.crit{background:var(--crit-bg); color:var(--crit)}
+  .run-status-badge.pending{background:var(--accent-bg); color:var(--accent-strong)}
+  .run-status-badge.neutral{background:var(--surface-2); color:var(--text-dim)}
+  .run-list{display:flex; flex-direction:column; gap:8px}
+  .run-row{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12.5px; flex-wrap:wrap}
+  .run-row .run-date{color:var(--text-dim); flex:1}
+  .run-row a{color:var(--text-dim); text-decoration:none; font-size:11px}
+  .run-row a:hover{color:var(--text)}
+  .flujo-note{font-size:11.5px; color:var(--text-dim); margin-top:14px}
+
+  /* Contactos */
+  .table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface)}
+  table.contactos{width:100%; border-collapse:collapse; font-size:12.5px}
+  table.contactos th{ text-align:left; padding:10px 12px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap; background:var(--surface-2); }
+  table.contactos td{padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap}
+  table.contactos tr:last-child td{border-bottom:none}
+  table.contactos tbody tr{cursor:pointer}
+  table.contactos tbody tr:hover{background:var(--surface-2)}
+
+  /* Campañas */
+  .camp-toolbar{display:flex; justify-content:flex-end; margin-bottom:16px}
+  .camp-list{display:flex; flex-direction:column; gap:16px}
+  .camp-card{background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--camp-color, var(--border)); border-radius:12px; padding:18px}
+  .camp-card.paused{opacity:.6}
+  .camp-card-head{display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap}
+  .camp-dot{width:10px; height:10px; border-radius:50%; background:var(--camp-color); flex:none}
+  .camp-name-input{ border:none; background:transparent; font-family:"Sora",sans-serif; font-weight:700; font-size:16px; color:var(--text); padding:2px 4px; border-radius:6px; flex:1; min-width:120px; }
+  .camp-name-input:hover, .camp-name-input:focus{background:var(--surface-2)}
+  .camp-card-actions{display:flex; gap:6px; align-items:center}
+  .camp-sub{font-size:11.5px; color:var(--text-dim); margin:2px 0 14px}
+  .switch{ position:relative; width:36px; height:20px; flex:none; border-radius:99px; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; }
+  .switch.on{background:var(--ok); border-color:var(--ok)}
+  .switch::after{ content:''; position:absolute; top:1px; left:1px; width:16px; height:16px; border-radius:50%; background:var(--surface); transition:left .15s ease; box-shadow:var(--shadow); }
+  .switch.on::after{left:17px}
+
+  .funnel-row{display:flex; align-items:center; gap:10px; margin-bottom:8px}
+  .funnel-label{flex:0 0 118px; font-size:11.5px; color:var(--text-dim); font-weight:600}
+  .funnel-track{flex:1; height:9px; border-radius:99px; background:var(--surface-2); overflow:hidden}
+  .funnel-fill{height:100%; border-radius:99px}
+  .funnel-val{flex:0 0 28px; text-align:right; font-size:12px; font-weight:700; font-family:"IBM Plex Mono",monospace}
+  .camp-foot{display:flex; gap:14px; margin:14px 0; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-size:11.5px; color:var(--text-dim)}
+  .camp-foot b{color:var(--text); font-family:"IBM Plex Mono",monospace}
+
+  .toque-list{display:flex; flex-direction:column; gap:10px}
+  .toque-card{background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px}
+  .toque-head{display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap}
+  .toque-num{font-size:11px; font-weight:700; color:var(--accent-strong); background:var(--accent-bg); padding:2px 9px; border-radius:99px; flex:none}
+  .toque-wait{display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-dim)}
+  .toque-wait input{width:48px; padding:4px 6px; font-size:12px; text-align:center}
+  .toque-head .right{margin-left:auto}
+  .toque-card input.toque-subject{width:100%; font-weight:600; font-size:13px; margin-bottom:6px}
+  .toque-card textarea.toque-body{width:100%; font-size:12.5px; line-height:1.6; min-height:110px}
+  .camp-add-toque{margin-top:10px}
+
+  /* Estadisticas */
+  .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:16px}
+  .chart-card h3{font-size:14px; margin:0 0 14px}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .bar-row:last-child{margin-bottom:0}
+  .bar-label{flex:0 0 132px; font-size:12px; color:var(--text-dim); font-weight:600}
+  .bar-track{flex:1; height:16px; border-radius:5px; background:var(--surface-2); overflow:hidden; position:relative}
+  .bar-fill{height:100%; border-radius:5px 0 0 5px}
+  .bar-val{flex:0 0 36px; text-align:right; font-size:12.5px; font-weight:700; font-family:"IBM Plex Mono",monospace}
+  .chart-legend{display:flex; gap:14px; margin-bottom:14px; font-size:11.5px; color:var(--text-dim); flex-wrap:wrap}
+  .chart-legend span{display:inline-flex; align-items:center; gap:6px}
+  .chart-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
+
+  @media (max-width:900px){
+    .sidebar{position:fixed; left:-260px; z-index:40; transition:left .18s ease; box-shadow:0 0 0 2000px rgba(0,0,0,0)}
+    .sidebar.open{left:0; box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+    .main-content{padding:16px 16px 40px}
+    #appShell{position:relative}
+  }
+  @media (max-width:640px){
+    .field-row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="hubView">
+  <span class="hub-eyebrow">Klyrex · Captación</span>
+  <h1 class="hub-title">Radar Klyrex</h1>
+  <p class="hub-sub">Tu centro de mando para la captación de leads. Elige una sección para empezar.</p>
+  <div class="hub-radar-wrap">
+    <div class="radar-mark lg" aria-hidden="true"></div>
+    <div class="hub-grid" id="hubGrid"></div>
+  </div>
+</div>
+
+<div id="appShell" hidden>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand" id="sidebarBrand">
+      <div class="radar-mark" aria-hidden="true"></div>
+      <div>
+        <div class="sb-sub">Klyrex</div>
+        <div class="sb-name">Radar Klyrex</div>
+      </div>
+    </div>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-foot">Panel de captación &amp; automatización</div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top">
+      <h2 class="page-title" id="pageTitle">Pipeline</h2>
+      <div class="top-actions" id="topActions">
+        <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
+        <div class="tabs" id="segTabs"></div>
+        <button class="btn" id="btnImport">⇪ Importar de Sheets</button>
+        <button class="btn primary" id="btnNew">+ Nuevo lead</button>
+      </div>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div id="viewPipeline"><div id="boardWrap"></div></div>
+    <div id="viewFlujo" hidden></div>
+    <div id="viewContactos" hidden></div>
+    <div id="viewCampanas" hidden></div>
+    <div id="viewEstadisticas" hidden></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+(function(){
+  var SUPABASE_URL = 'https://znlafkmfvtgcwgwjytdm.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_p-GPSrRqP37tUMGPI1wVBg_NrOyn2nJ';
+
+  var GITHUB_OWNER = 'klyrexcorp-commits';
+  var GITHUB_REPO = 'radar-klyrex-automation';
+  var GITHUB_WORKFLOW = 'send-sequence.yml';
+  var GITHUB_ACTIONS_URL = 'https://github.com/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW;
+
+  var STATUSES = [
+    {key:'nuevo', label:'Nuevo'},
+    {key:'contactado', label:'Contactado'},
+    {key:'cualificado', label:'Cualificado'},
+    {key:'propuesta', label:'Propuesta'},
+    {key:'ganado', label:'Ganado'},
+    {key:'perdido', label:'Perdido'}
+  ];
+  var NAV = [
+    {key:'pipeline', label:'Pipeline', icon:'◎', color:'var(--accent)', desc:'Tablero de ventas'},
+    {key:'flujo', label:'Flujo', icon:'⇄', color:'var(--node-blue)', desc:'Automatización'},
+    {key:'contactos', label:'Contactos', icon:'☰', color:'var(--seg-web)', desc:'Listado completo'},
+    {key:'campanas', label:'Campañas', icon:'✉', color:'var(--node-orange)', desc:'Secuencias de email'},
+    {key:'estadisticas', label:'Estadísticas', icon:'▦', color:'var(--seg-auto)', desc:'Métricas del embudo'}
+  ];
+
+  var leads = [];
+  var campanas = [];
+  var currentSeg = 'todos';
+  var searchQuery = '';
+  var currentMainTab = 'hub';
+
+  function campanaById(id){ return campanas.find(function(c){return c.id===id;}); }
+  function campaignColor(campana){
+    var idx = campanas.findIndex(function(c){return c.id===campana.id;});
+    return 'var(--cat-'+((idx>=0?idx:0)%8 + 1)+')';
+  }
+  function campaignLabel(campana){ return campana ? campana.nombre : 'Sin campaña'; }
+  function campChipHtml(campId){
+    var c = campanaById(campId);
+    if(!c) return '<span class="chip" style="background:var(--surface-2);color:var(--text-dim)">Sin campaña</span>';
+    var color = campaignColor(c);
+    return '<span class="chip" style="background:color-mix(in srgb, '+color+' 18%, transparent);color:'+color+'">'+esc(c.nombre)+'</span>';
+  }
+
+  var elBoard = document.getElementById('boardWrap');
+  var elStats = document.getElementById('stats');
+  var elOverlay = document.getElementById('overlay');
+  var elModal = document.getElementById('modal');
+  var elFlujo = document.getElementById('viewFlujo');
+  var elContactos = document.getElementById('viewContactos');
+  var elCampanas = document.getElementById('viewCampanas');
+  var elEstadisticas = document.getElementById('viewEstadisticas');
+  var elHubView = document.getElementById('hubView');
+  var elAppShell = document.getElementById('appShell');
+  var elPageTitle = document.getElementById('pageTitle');
+  var elTopActions = document.getElementById('topActions');
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function norm(s){ return String(s==null?'':s).toLowerCase(); }
+  function scoreClass(n){
+    n = Number(n)||0;
+    if(n>=70) return 'hi';
+    if(n>=40) return 'mid';
+    return 'lo';
+  }
+  function statusLabel(key){
+    var s = STATUSES.find(function(x){return x.key===key;});
+    return s ? s.label : key;
+  }
+
+  // ---- Supabase REST helpers ----
+  function sb(path, options){
+    options = options || {};
+    var headers = Object.assign({
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + SUPABASE_KEY
+    }, options.headers || {});
+    return fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({}, options, {headers: headers}))
+      .then(function(res){
+        if(!res.ok){ return res.text().then(function(t){ throw new Error('Supabase ' + res.status + ': ' + t); }); }
+        if(res.status === 204) return null;
+        return res.json();
+      });
+  }
+  function fetchLeads(){
+    return sb('leads?select=*&order=created_at.desc').then(function(rows){
+      leads = rows || [];
+      render();
+    }).catch(function(e){
+      console.error(e);
+      elBoard.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No se pudo conectar con la base de datos</div><div style="font-size:13px">'+esc(e.message)+'</div></div>';
+    });
+  }
+  function createLead(data){
+    return sb('leads', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(data)})
+      .then(fetchLeads);
+  }
+  function updateLead(id, patch){
+    patch.updated_at = new Date().toISOString();
+    return sb('leads?id=eq.'+id, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchLeads);
+  }
+  function deleteLead(id){
+    return sb('leads?id=eq.'+id, {method:'DELETE'}).then(fetchLeads);
+  }
+
+  // ---- Campañas (Supabase) ----
+  function fetchCampanas(){
+    return sb('campanas?select=*,campana_toques(*)&order=created_at.asc').then(function(rows){
+      campanas = rows || [];
+      campanas.forEach(function(c){
+        c.campana_toques.sort(function(a,b){return a.orden-b.orden;});
+      });
+      if(currentMainTab==='campanas') renderCampanas();
+      renderSegTabs();
+      if(currentMainTab==='pipeline') renderBoard();
+      if(currentMainTab==='contactos') renderContactos();
+      renderHub();
+    }).catch(function(e){ console.error('Error cargando campañas', e); });
+  }
+  function createCampana(data){
+    return sb('campanas', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=representation'}, body: JSON.stringify(data)})
+      .then(function(res){ return res && res[0]; })
+      .then(function(nueva){ return fetchCampanas().then(function(){ return nueva; }); });
+  }
+  function updateCampana(id, patch){
+    patch.updated_at = new Date().toISOString();
+    return sb('campanas?id=eq.'+id, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchCampanas);
+  }
+  function deleteCampana(id){
+    return sb('campanas?id=eq.'+id, {method:'DELETE'}).then(fetchCampanas);
+  }
+  function createToque(data){
+    return sb('campana_toques', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(data)})
+      .then(fetchCampanas);
+  }
+  function updateToque(id, patch){
+    return sb('campana_toques?id=eq.'+id, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchCampanas);
+  }
+  function deleteToque(id){
+    return sb('campana_toques?id=eq.'+id, {method:'DELETE'}).then(fetchCampanas);
+  }
+
+  // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es público) ----
+  function gh(path, options){
+    options = options || {};
+    var headers = Object.assign({ Accept: 'application/vnd.github+json' }, options.headers || {});
+    return fetch('https://api.github.com' + path, Object.assign({}, options, {headers: headers}))
+      .then(function(res){
+        if(res.status === 204){ if(!res.ok) throw new Error('HTTP ' + res.status); return null; }
+        return res.text().then(function(t){
+          var data = t ? JSON.parse(t) : null;
+          if(!res.ok) throw new Error((data && data.message) || ('HTTP ' + res.status));
+          return data;
+        });
+      });
+  }
+
+  var runs = [];
+  var flujoError = '';
+  var flujoPollTimer = null;
+
+  function fetchRuns(){
+    return gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/runs?per_page=8')
+      .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
+      .catch(function(e){ flujoError = e.message; renderFlujo(); });
+  }
+  function statusInfo(run){
+    if(run.status !== 'completed'){
+      return {label: run.status==='in_progress' ? 'En curso' : 'En cola', cls:'pending'};
+    }
+    if(run.conclusion === 'success') return {label:'Correcto', cls:'ok'};
+    if(run.conclusion === 'failure') return {label:'Fallo', cls:'crit'};
+    return {label: run.conclusion || 'Desconocido', cls:'neutral'};
+  }
+  function fmtDateTime(iso){
+    var d = new Date(iso);
+    return d.toLocaleString('es-ES', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+  }
+  function flowStep(n, title, desc){
+    return '<div class="flow-step"><span class="num tabular">'+n+'</span><h4>'+esc(title)+'</h4><p>'+esc(desc)+'</p></div>';
+  }
+  function flowArrow(){ return '<div class="flow-arrow">→</div>'; }
+  function runRowHtml(r){
+    var info = statusInfo(r);
+    return '<div class="run-row">' +
+      '<span class="run-status-badge '+info.cls+'">'+info.label+'</span>' +
+      '<span class="run-date mono">'+fmtDateTime(r.created_at)+' · #'+r.run_number+'</span>' +
+      '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub ↗</a>' +
+    '</div>';
+  }
+  function renderFlujo(){
+    var last = runs[0];
+    var lastInfo = last ? statusInfo(last) : null;
+    var html = '';
+    html += '<div class="flow">' +
+      flowStep(1, 'Prospección', 'Apify / búsquedas manuales encuentran negocios y empresas') +
+      flowArrow() +
+      flowStep(2, 'Supabase', 'Los leads se guardan en la tabla central (leads)') +
+      flowArrow() +
+      flowStep(3, 'GitHub Actions', 'Cada día a las 8:00 UTC revisa a quién toca contactar') +
+      flowArrow() +
+      flowStep(4, 'Gmail', 'Envía el email de la secuencia desde info@klyrex.es') +
+      flowArrow() +
+      flowStep(5, 'Supabase', 'Marca el lead como Contactado y guarda la fecha') +
+    '</div>';
+    html += '<div class="run-card">' +
+      '<div class="run-head">' +
+        '<div>' +
+          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Última ejecución</div>' +
+          (last ?
+            '<span class="run-status-badge '+lastInfo.cls+'">'+lastInfo.label+'</span> ' +
+            '<span class="mono" style="font-size:12.5px;color:var(--text-dim)">'+fmtDateTime(last.created_at)+' · #'+last.run_number+'</span>'
+            : '<span style="color:var(--text-dim);font-size:13px">Sin ejecuciones todavía</span>') +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn sm" id="btnRefreshRuns" title="Actualizar">↻</button>' +
+          '<a class="btn primary" href="'+GITHUB_ACTIONS_URL+'" target="_blank" rel="noopener">▶ Ejecutar en GitHub ↗</a>' +
+        '</div>' +
+      '</div>' +
+      (flujoError ? '<div style="color:var(--crit);font-size:12.5px;margin-bottom:10px">'+esc(flujoError)+'</div>' : '') +
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Próxima ejecución automática: todos los días a las 8:00 UTC (≈9-10h en España). "Ejecutar en GitHub" te lleva a la página del workflow para lanzarlo con un clic ("Run workflow").</div>' +
+      '<div class="run-list">' +
+        (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">Todavía no hay historial de ejecuciones.</div>') +
+      '</div>' +
+      '<div class="flujo-note">El historial se lee directamente de GitHub (repositorio público, sin claves en el código).</div>' +
+    '</div>';
+    elFlujo.innerHTML = html;
+    var btnRefresh = document.getElementById('btnRefreshRuns');
+    if(btnRefresh) btnRefresh.addEventListener('click', fetchRuns);
+  }
+
+  function renderContactos(){
+    var list = filtered();
+    if(list.length === 0){
+      elContactos.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No hay contactos que coincidan</div></div>';
+      return;
+    }
+    var rows = list.map(function(l){
+      return '<tr data-id="'+l.id+'">' +
+        '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
+        '<td>'+campChipHtml(l.campana_id)+'</td>' +
+        '<td>'+esc(l.contacto)+'</td>' +
+        '<td>'+esc(l.telefono)+'</td>' +
+        '<td>'+esc(l.email)+'</td>' +
+        '<td>'+esc(l.ciudad)+'</td>' +
+        '<td>'+esc(statusLabel(norm(l.estado)))+'</td>' +
+        '<td class="tabular">'+(l.toque||0)+'</td>' +
+        '<td class="tabular">'+(l.score!=null?l.score:'')+'</td>' +
+      '</tr>';
+    }).join('');
+    elContactos.innerHTML =
+      '<div style="display:flex;justify-content:flex-end;margin-bottom:10px">'+
+        '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+      '</div>'+
+      '<div class="table-wrap"><table class="contactos"><thead><tr>'+
+        '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Estado</th><th>Toque</th><th>Score</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    elContactos.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+      tr.addEventListener('click', function(){ openDetail(tr.getAttribute('data-id')); });
+    });
+    var exportBtn = document.getElementById('btnExportCsv');
+    if(exportBtn) exportBtn.addEventListener('click', exportCsv);
+  }
+
+  function exportCsv(){
+    var list = filtered();
+    var headers = ['nombre','campana_id','contacto','telefono','email','ciudad','estado','toque','score','origen','notas'];
+    var lines = [headers.join(',')];
+    list.forEach(function(l){
+      var row = headers.map(function(h){
+        var v = l[h] == null ? '' : String(l[h]);
+        if(v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1){
+          v = '"' + v.replace(/"/g, '""') + '"';
+        }
+        return v;
+      });
+      lines.push(row.join(','));
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'radar-klyrex-contactos.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // ---- Campañas (CRUD completo) ----
+  function funnelRowHtml(label, val, max, color){
+    var pct = max>0 ? Math.round((val/max)*100) : 0;
+    return '<div class="funnel-row">'+
+      '<span class="funnel-label">'+esc(label)+'</span>'+
+      '<div class="funnel-track"><div class="funnel-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+      '<span class="funnel-val tabular">'+val+'</span>'+
+    '</div>';
+  }
+
+  function toqueCardHtml(t, idx){
+    return '<div class="toque-card" data-toque-id="'+t.id+'">'+
+      '<div class="toque-head">'+
+        '<span class="toque-num">TOQUE '+(idx+1)+'</span>'+
+        '<label class="toque-wait">Esperar <input type="number" min="0" class="toque-wait-input" data-toque-wait="'+t.id+'" value="'+t.espera_dias+'"> días</label>'+
+        '<button class="btn sm danger right" data-toque-delete="'+t.id+'" title="Eliminar toque">✕</button>'+
+      '</div>'+
+      '<input class="toque-subject" data-toque-subject="'+t.id+'" value="'+esc(t.asunto)+'" placeholder="Asunto del email">'+
+      '<textarea class="toque-body" data-toque-body="'+t.id+'" placeholder="Cuerpo del email. Variables: {negocio} {contacto} {ciudad}">'+esc(t.cuerpo)+'</textarea>'+
+    '</div>';
+  }
+
+  function campanaCardHtml(campana){
+    var color = campaignColor(campana);
+    var toques = campana.campana_toques;
+    var campLeads = leads.filter(function(l){ return l.campana_id===campana.id; });
+    var porToque = [];
+    for(var i=0;i<=toques.length;i++) porToque[i]=0;
+    var respondidos=0, bajas=0;
+    campLeads.forEach(function(l){
+      var e = norm(l.estado);
+      if(e==='respondido'){ respondidos++; return; }
+      if(e==='baja'){ bajas++; return; }
+      var t = Math.min(toques.length, Math.max(0, Number(l.toque||0)));
+      porToque[t]++;
+    });
+    var max = Math.max.apply(null, porToque.concat([1]));
+    var funnelHtml = toques.map(function(t,i){
+      return funnelRowHtml(i===0 ? 'Pendiente' : 'Tras toque '+i, porToque[i], max, color);
+    }).join('') + funnelRowHtml('Secuencia completa', porToque[toques.length], max, color);
+
+    return '<div class="camp-card'+(campana.activa?'':' paused')+'" style="--camp-color:'+color+'" data-camp-id="'+campana.id+'">'+
+      '<div class="camp-card-head">'+
+        '<span class="camp-dot" style="background:'+color+'"></span>'+
+        '<input class="camp-name-input" data-camp-name="'+campana.id+'" value="'+esc(campana.nombre)+'">'+
+        '<div class="camp-card-actions">'+
+          '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
+          '<button class="btn sm danger" data-camp-delete="'+campana.id+'" title="Eliminar campaña">✕</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="camp-sub">'+campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      funnelHtml+
+      '<div class="camp-foot"><span>Respondidos: <b>'+respondidos+'</b></span><span>Bajas: <b>'+bajas+'</b></span></div>'+
+      '<div class="toque-list">'+toques.map(toqueCardHtml).join('')+'</div>'+
+      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ Añadir toque</button>'+
+    '</div>';
+  }
+
+  function renderCampanas(){
+    var html = '<div class="camp-toolbar"><button class="btn primary" id="btnNewCampana">+ Nueva campaña</button></div>';
+    if(campanas.length===0){
+      html += '<div class="empty-state"><div style="font-weight:600;color:var(--text)">Todavía no hay campañas</div><div style="font-size:13px">Crea la primera para definir su secuencia de emails.</div></div>';
+    } else {
+      html += '<div class="camp-list">'+campanas.map(campanaCardHtml).join('')+'</div>';
+    }
+    elCampanas.innerHTML = html;
+    var btnNew = document.getElementById('btnNewCampana');
+    if(btnNew) btnNew.addEventListener('click', openNewCampana);
+  }
+
+  function openNewCampana(){
+    elModal.innerHTML =
+      '<h2>Nueva campaña</h2>'+
+      '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios — oferta verano"></div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNewCampana()">Crear campaña</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+  }
+  function saveNewCampana(){
+    var input = document.getElementById('nc_nombre');
+    var nombre = input.value.trim();
+    if(!nombre) return;
+    closeModal();
+    createCampana({nombre: nombre, segmento: 'general', activa: true}).then(function(nueva){
+      if(nueva) createToque({campana_id: nueva.id, orden:0, espera_dias:0, asunto:'Asunto del primer email', cuerpo:'Hola {contacto},\n\n'});
+    });
+  }
+
+  elCampanas.addEventListener('click', function(e){
+    var toggle = e.target.closest('[data-camp-toggle]');
+    if(toggle){
+      var camp = campanaById(toggle.getAttribute('data-camp-toggle'));
+      if(camp) updateCampana(camp.id, {activa: !camp.activa});
+      return;
+    }
+    var delCamp = e.target.closest('[data-camp-delete]');
+    if(delCamp){
+      if(confirm('¿Eliminar esta campaña y todos sus toques? Los leads asignados se quedarán sin campaña.')){
+        deleteCampana(delCamp.getAttribute('data-camp-delete'));
+      }
+      return;
+    }
+    var addToque = e.target.closest('[data-camp-add-toque]');
+    if(addToque){
+      var campId = addToque.getAttribute('data-camp-add-toque');
+      var camp = campanaById(campId);
+      var orden = camp ? camp.campana_toques.length : 0;
+      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},\n\n'});
+      return;
+    }
+    var delToque = e.target.closest('[data-toque-delete]');
+    if(delToque){
+      if(confirm('¿Eliminar este toque de la secuencia?')) deleteToque(delToque.getAttribute('data-toque-delete'));
+      return;
+    }
+  });
+  elCampanas.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.matches('[data-camp-name]')){ updateCampana(t.getAttribute('data-camp-name'), {nombre: t.value.trim()||'Sin nombre'}); return; }
+    if(t.matches('[data-toque-wait]')){ updateToque(t.getAttribute('data-toque-wait'), {espera_dias: Math.max(0, Number(t.value)||0)}); return; }
+    if(t.matches('[data-toque-subject]')){ updateToque(t.getAttribute('data-toque-subject'), {asunto: t.value}); return; }
+    if(t.matches('[data-toque-body]')){ updateToque(t.getAttribute('data-toque-body'), {cuerpo: t.value}); return; }
+  });
+
+  // ---- Estadisticas ----
+  function barRowHtml(label, val, max, color){
+    var pct = max>0 ? Math.round((val/max)*100) : 0;
+    return '<div class="bar-row">'+
+      '<span class="bar-label">'+esc(label)+'</span>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+      '<span class="bar-val tabular">'+val+'</span>'+
+    '</div>';
+  }
+
+  function renderEstadisticas(){
+    var total = leads.length;
+    var ganados = leads.filter(function(l){return norm(l.estado)==='ganado';}).length;
+    var tasaConv = total>0 ? Math.round((ganados/total)*100) : 0;
+    var hace7 = new Date(Date.now() - 7*24*60*60*1000);
+    var nuevosSemana = leads.filter(function(l){ return l.created_at && new Date(l.created_at) >= hace7; }).length;
+    var scoreMedio = total>0 ? Math.round(leads.reduce(function(s,l){return s+(Number(l.score)||0);},0)/total) : 0;
+
+    var porEstado = {};
+    STATUSES.forEach(function(s){ porEstado[s.key]=0; });
+    leads.forEach(function(l){ var k=norm(l.estado); if(porEstado[k]!=null) porEstado[k]++; });
+    var maxEstado = Math.max.apply(null, STATUSES.map(function(s){return porEstado[s.key];}).concat([1]));
+
+    var porCampana = campanas.map(function(c){
+      return {campana:c, count: leads.filter(function(l){return l.campana_id===c.id;}).length};
+    });
+    var maxCamp = Math.max.apply(null, porCampana.map(function(x){return x.count;}).concat([1]));
+
+    var outbound = leads.filter(function(l){return l.origen==='outbound';}).length;
+    var inbound = leads.filter(function(l){return l.origen==='inbound';}).length;
+    var maxOrigen = Math.max(outbound, inbound, 1);
+
+    var html = '<div class="stats">'+
+      '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
+      '<div class="stat ok"><span class="n tabular">'+tasaConv+'%</span><span class="l">Tasa de conversión</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+nuevosSemana+'</span><span class="l">Nuevos (7 días)</span></div>'+
+      '<div class="stat"><span class="n tabular">'+scoreMedio+'</span><span class="l">Score medio</span></div>'+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por estado del pipeline</h3>'+
+      STATUSES.map(function(s){
+        var color = s.key==='ganado' ? 'var(--ok)' : s.key==='perdido' ? 'var(--crit)' : 'var(--node-blue)';
+        var label = s.key==='ganado' ? '✓ ' + s.label : s.key==='perdido' ? '✗ ' + s.label : s.label;
+        return barRowHtml(label, porEstado[s.key], maxEstado, color);
+      }).join('')+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por campaña</h3>'+
+      (porCampana.length===0 ? '<div style="font-size:12.5px;color:var(--text-dim)">Todavía no hay campañas.</div>' :
+        porCampana.map(function(x){ return barRowHtml(x.campana.nombre, x.count, maxCamp, campaignColor(x.campana)); }).join('')
+      )+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por origen</h3>'+
+      barRowHtml('Prospección (outbound)', outbound, maxOrigen, 'var(--node-orange)')+
+      barRowHtml('Entrante (inbound)', inbound, maxOrigen, 'var(--node-blue)')+
+    '</div>';
+
+    elEstadisticas.innerHTML = html;
+  }
+
+  function render(){
+    renderStats();
+    renderSegTabs();
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+    if(currentMainTab === 'campanas') renderCampanas();
+    if(currentMainTab === 'estadisticas') renderEstadisticas();
+    renderHub();
+  }
+
+  function renderStats(){
+    if(currentMainTab === 'estadisticas') return;
+    var total = leads.length;
+    var sinCampana = leads.filter(function(l){return !l.campana_id;}).length;
+    var activas = campanas.filter(function(c){return c.activa;}).length;
+    var ganados = leads.filter(function(l){return norm(l.estado)==='ganado';}).length;
+    elStats.innerHTML =
+      '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+activas+'</span><span class="l">Campañas activas</span></div>'+
+      '<div class="stat"><span class="n tabular">'+sinCampana+'</span><span class="l">Sin campaña</span></div>'+
+      '<div class="stat ok"><span class="n tabular">'+ganados+'</span><span class="l">Ganados</span></div>';
+  }
+
+  function renderSegTabs(){
+    var el = document.getElementById('segTabs');
+    if(!el) return;
+    var html = '<button data-seg="todos" class="'+(currentSeg==='todos'?'active':'')+'">Todos</button>';
+    html += campanas.map(function(c){
+      return '<button data-seg="'+c.id+'" class="'+(String(currentSeg)===String(c.id)?'active':'')+'">'+esc(c.nombre)+'</button>';
+    }).join('');
+    el.innerHTML = html;
+  }
+
+  function filtered(){
+    var q = searchQuery.trim().toLowerCase();
+    return leads.filter(function(l){
+      if(currentSeg!=='todos' && String(l.campana_id)!==String(currentSeg)) return false;
+      if(!q) return true;
+      var hay = [l.nombre,l.contacto,l.email,l.telefono,l.ciudad].join(' ').toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+  }
+
+  function renderBoard(){
+    var list = filtered();
+    if(leads.length===0){
+      elBoard.innerHTML =
+        '<div class="empty-state">'+
+          '<div class="radar-mark" aria-hidden="true" style="width:76px;height:76px"></div>'+
+          '<div class="display" style="font-size:16px;font-weight:600;color:var(--text)">Todavía no hay leads</div>'+
+          '<div style="font-size:13px;max-width:360px">Añade el primero a mano, o pide búsquedas de prospección para llenarlo automáticamente.</div>'+
+          '<button class="btn primary" onclick="RadarKlyrex.openNew()">+ Nuevo lead</button>'+
+        '</div>';
+      return;
+    }
+    var html = '<div class="board">';
+    STATUSES.forEach(function(st){
+      var items = list.filter(function(l){return norm(l.estado)===st.key;});
+      var headClass = st.key==='ganado' ? ' ok' : st.key==='perdido' ? ' crit' : '';
+      html += '<div class="col" data-status="'+st.key+'">';
+      html += '<div class="col-head'+headClass+'"><span>'+st.label+'</span><span class="count tabular">'+items.length+'</span></div>';
+      html += '<div class="col-body">';
+      if(items.length===0){
+        html += '<div class="col-empty">Sin leads</div>';
+      } else {
+        items.forEach(function(l){ html += cardHtml(l); });
+      }
+      html += '</div></div>';
+    });
+    html += '</div>';
+    elBoard.innerHTML = html;
+    bindBoardEvents();
+  }
+
+  function scoreRingHtml(score){
+    var n = Math.max(0, Math.min(100, Number(score)||0));
+    var tier = scoreClass(n);
+    var ringColor = tier==='hi' ? 'var(--ok)' : tier==='mid' ? 'var(--accent)' : 'var(--text-dim)';
+    return (
+      '<div class="score-ring" style="--pct:'+n+';--ring-color:'+ringColor+'">'+
+        '<div class="score-ring-inner tabular">'+n+'</div>'+
+      '</div>'
+    );
+  }
+
+  function cardHtml(l){
+    var camp = campanaById(l.campana_id);
+    var borderColor = camp ? campaignColor(camp) : 'var(--border)';
+    var optHtml = STATUSES.map(function(s){
+      return '<option value="'+s.key+'"'+(s.key===norm(l.estado)?' selected':'')+'>'+s.label+'</option>';
+    }).join('');
+    var toqueChip = (l.toque!=null && l.toque>0) ? '<span class="chip toque">Toque '+l.toque+'</span>' : '';
+    return (
+      '<div class="card" draggable="true" data-id="'+l.id+'" style="border-left-color:'+borderColor+'">'+
+        '<div class="card-top">'+
+          '<div class="card-name">'+esc(l.nombre)+'</div>'+
+          scoreRingHtml(l.score)+
+        '</div>'+
+        '<div class="chips">'+
+          campChipHtml(l.campana_id)+
+          toqueChip+
+        '</div>'+
+        '<div class="card-meta">'+
+          (l.contacto ? '<span>'+esc(l.contacto)+'</span>' : '')+
+          (l.ciudad ? '<span>'+esc(l.ciudad)+'</span>' : '')+
+        '</div>'+
+        '<select class="status-quick mono" data-id="'+l.id+'">'+optHtml+'</select>'+
+      '</div>'
+    );
+  }
+
+  function bindBoardEvents(){
+    elBoard.querySelectorAll('.card').forEach(function(card){
+      card.addEventListener('click', function(e){
+        if(e.target.closest('select')) return;
+        openDetail(card.getAttribute('data-id'));
+      });
+      card.addEventListener('dragstart', function(e){
+        e.dataTransfer.setData('text/plain', card.getAttribute('data-id'));
+      });
+    });
+    elBoard.querySelectorAll('.status-quick').forEach(function(sel){
+      sel.addEventListener('change', function(e){
+        e.stopPropagation();
+        updateLead(sel.getAttribute('data-id'), {estado: sel.value});
+      });
+      sel.addEventListener('click', function(e){ e.stopPropagation(); });
+    });
+    elBoard.querySelectorAll('.col').forEach(function(col){
+      col.addEventListener('dragover', function(e){
+        e.preventDefault();
+        col.classList.add('dragover');
+      });
+      col.addEventListener('dragleave', function(){ col.classList.remove('dragover'); });
+      col.addEventListener('drop', function(e){
+        e.preventDefault();
+        col.classList.remove('dragover');
+        var id = e.dataTransfer.getData('text/plain');
+        var status = col.getAttribute('data-status');
+        if(id) updateLead(id, {estado: status});
+      });
+    });
+  }
+
+  // ---- Modal: create / edit ----
+  function fieldsHtml(l){
+    l = l || {};
+    return (
+      '<div class="field"><label>Nombre empresa / negocio</label>'+
+        '<input type="text" id="f_name" value="'+esc(l.nombre)+'" placeholder="Ej. Panadería San Juan"></div>'+
+      '<div class="field"><label>Campaña</label>'+
+        '<select id="f_campana">'+
+          '<option value="">Sin campaña</option>'+
+          campanas.filter(function(c){return c.activa;}).map(function(c){
+            return '<option value="'+c.id+'"'+(l.campana_id===c.id?' selected':'')+'>'+esc(c.nombre)+'</option>';
+          }).join('')+
+        '</select></div>'+
+      '<div class="field-row">'+
+        '<div class="field"><label>Persona de contacto</label><input type="text" id="f_contact" value="'+esc(l.contacto)+'"></div>'+
+        '<div class="field"><label>Ciudad</label><input type="text" id="f_city" value="'+esc(l.ciudad)+'"></div>'+
+      '</div>'+
+      '<div class="field-row">'+
+        '<div class="field"><label>Teléfono</label><input type="tel" id="f_phone" value="'+esc(l.telefono)+'"></div>'+
+        '<div class="field"><label>Email</label><input type="email" id="f_email" value="'+esc(l.email)+'"></div>'+
+      '</div>'+
+      '<div class="field-row">'+
+        '<div class="field"><label>Origen</label>'+
+          '<select id="f_source">'+
+            '<option value="outbound"'+(l.origen==='outbound'||!l.origen?' selected':'')+'>Prospección (outbound)</option>'+
+            '<option value="inbound"'+(l.origen==='inbound'?' selected':'')+'>Entrante (inbound)</option>'+
+          '</select></div>'+
+        '<div class="field"><label>Score (0-100)</label><input type="number" id="f_score" min="0" max="100" value="'+(l.score!=null?l.score:50)+'"></div>'+
+      '</div>'+
+      (l.id ? (
+      '<div class="field"><label>Estado</label>'+
+        '<select id="f_status">'+STATUSES.map(function(s){return '<option value="'+s.key+'"'+(s.key===norm(l.estado)?' selected':'')+'>'+s.label+'</option>';}).join('')+'</select></div>'
+      ) : '')+
+      '<div class="field"><label>Notas</label><textarea id="f_notes">'+esc(l.notas)+'</textarea></div>'
+    );
+  }
+
+  function openNew(){
+    elModal.innerHTML =
+      '<h2>Nuevo lead</h2>'+
+      fieldsHtml({})+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNew()">Añadir lead</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+  }
+
+  function openDetail(id){
+    var l = leads.find(function(x){return String(x.id)===String(id);});
+    if(!l) return;
+    elModal.innerHTML =
+      '<h2>'+esc(l.nombre)+'</h2>'+
+      fieldsHtml(l)+
+      '<div class="modal-actions">'+
+        '<button class="btn danger" onclick="RadarKlyrex.remove(\''+id+'\')">Eliminar</button>'+
+        '<div class="right">'+
+          '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cerrar</button>'+
+          '<button class="btn primary" onclick="RadarKlyrex.saveEdit(\''+id+'\')">Guardar</button>'+
+        '</div>'+
+      '</div>';
+    elOverlay.hidden = false;
+  }
+
+  function closeModal(){ elOverlay.hidden = true; }
+
+  function readForm(){
+    var campEl = document.getElementById('f_campana');
+    return {
+      nombre: document.getElementById('f_name').value.trim() || 'Sin nombre',
+      campana_id: campEl && campEl.value ? campEl.value : null,
+      contacto: document.getElementById('f_contact').value.trim(),
+      ciudad: document.getElementById('f_city').value.trim(),
+      telefono: document.getElementById('f_phone').value.trim(),
+      email: document.getElementById('f_email').value.trim(),
+      origen: document.getElementById('f_source').value,
+      score: Math.max(0, Math.min(100, Number(document.getElementById('f_score').value)||0)),
+      notas: document.getElementById('f_notes').value.trim()
+    };
+  }
+
+  function saveNew(){
+    var data = readForm();
+    data.estado = 'nuevo';
+    data.toque = 0;
+    createLead(data).then(closeModal).catch(function(e){ console.error(e); });
+  }
+
+  function saveEdit(id){
+    var data = readForm();
+    var statusEl = document.getElementById('f_status');
+    if(statusEl) data.estado = statusEl.value;
+    var prev = leads.find(function(x){return String(x.id)===String(id);});
+    if(prev && prev.campana_id !== data.campana_id){
+      data.toque = 0;
+      data.fecha_ultimo_envio = null;
+    }
+    updateLead(id, data).then(closeModal).catch(function(e){ console.error(e); });
+  }
+
+  function remove(id){
+    deleteLead(id).then(closeModal).catch(function(e){ console.error(e); });
+  }
+
+  // ---- Importar desde Google Sheets (CSV publicado) ----
+  var FIELD_DEFS = [
+    {key:'nombre', label:'Nombre / Empresa', aliases:['nombre','name','empresa','negocio','company','business']},
+    {key:'contacto', label:'Persona de contacto', aliases:['contacto','contact','persona']},
+    {key:'telefono', label:'Teléfono', aliases:['telefono','phone','tel','movil']},
+    {key:'email', label:'Email', aliases:['email','correo','mail','e-mail']},
+    {key:'ciudad', label:'Ciudad', aliases:['ciudad','city','localidad','poblacion']},
+    {key:'notas', label:'Notas', aliases:['notas','notes','comentarios','observaciones']}
+  ];
+  var importData = null;
+
+  function normKey(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+
+  function parseCSV(text){
+    var rows = []; var row = []; var field = ''; var inQuotes = false;
+    for(var i=0;i<text.length;i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; } else inQuotes = false;
+        } else field += c;
+      } else {
+        if(c === '"') inQuotes = true;
+        else if(c === ','){ row.push(field); field=''; }
+        else if(c === '\n' || c === '\r'){
+          if(c === '\r' && text[i+1] === '\n') i++;
+          row.push(field); field='';
+          rows.push(row); row=[];
+        } else field += c;
+      }
+    }
+    if(field!=='' || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return !(r.length===1 && r[0].trim()===''); });
+  }
+
+  function guessColumn(headers, aliases){
+    for(var i=0;i<headers.length;i++){
+      var h = normKey(headers[i]);
+      for(var j=0;j<aliases.length;j++){ if(h === normKey(aliases[j])) return i; }
+    }
+    return -1;
+  }
+
+  function openImportSheets(){
+    elModal.innerHTML =
+      '<h2>Importar desde Google Sheets</h2>'+
+      '<div class="field"><label>Enlace CSV publicado</label>'+
+        '<input type="text" id="imp_url" placeholder="https://docs.google.com/.../pub?output=csv"></div>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.5">En Google Sheets: Archivo → Compartir → Publicar en la web → elige la hoja y formato CSV → Publicar. Pega aquí el enlace generado.</div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" id="btnLoadCsv">Cargar</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+    document.getElementById('btnLoadCsv').addEventListener('click', loadImportCsv);
+  }
+
+  function loadImportCsv(){
+    var urlEl = document.getElementById('imp_url');
+    var url = urlEl.value.trim();
+    if(!url) return;
+    var btn = document.getElementById('btnLoadCsv');
+    btn.disabled = true; btn.textContent = 'Cargando…';
+    fetch(url).then(function(res){
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return res.text();
+    }).then(function(text){
+      var rows = parseCSV(text);
+      if(rows.length < 2){ throw new Error('El CSV no tiene filas de datos.'); }
+      importData = {headers: rows[0], rows: rows.slice(1).filter(function(r){ return r.some(function(c){return c.trim()!=='';}); })};
+      openImportMapping();
+    }).catch(function(e){
+      alert('No se pudo cargar el CSV: '+e.message+'\n\nComprueba que la hoja esté publicada en la web (no solo compartida) y que el enlace sea el de formato CSV.');
+      btn.disabled = false; btn.textContent = 'Cargar';
+    });
+  }
+
+  function openImportMapping(){
+    var headers = importData.headers;
+    var fieldSelects = FIELD_DEFS.map(function(f){
+      var guess = guessColumn(headers, f.aliases);
+      var opts = '<option value="-1">— No importar —</option>'+headers.map(function(h,i){
+        return '<option value="'+i+'"'+(i===guess?' selected':'')+'>'+esc(h)+'</option>';
+      }).join('');
+      return '<div class="field"><label>'+f.label+'</label><select data-imp-field="'+f.key+'">'+opts+'</select></div>';
+    }).join('');
+
+    elModal.innerHTML =
+      '<h2>Importar '+importData.rows.length+' leads</h2>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px">'+headers.length+' columnas detectadas. Revisa que cada campo apunte a la columna correcta.</div>'+
+      fieldSelects+
+      '<div class="field"><label>Asignar a campaña</label><select id="imp_campana">'+
+        '<option value="">Sin campaña</option>'+
+        campanas.filter(function(c){return c.activa;}).map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
+      '</select></div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" id="btnConfirmImport">Importar '+importData.rows.length+' leads</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+    document.getElementById('btnConfirmImport').addEventListener('click', confirmImport);
+  }
+
+  function confirmImport(){
+    var mapping = {};
+    document.querySelectorAll('[data-imp-field]').forEach(function(sel){
+      mapping[sel.getAttribute('data-imp-field')] = Number(sel.value);
+    });
+    var campId = document.getElementById('imp_campana').value || null;
+    var btn = document.getElementById('btnConfirmImport');
+    btn.disabled = true; btn.textContent = 'Importando…';
+
+    var leadsToImport = importData.rows.map(function(row){
+      var lead = {estado:'nuevo', toque:0, origen:'outbound', campana_id: campId};
+      FIELD_DEFS.forEach(function(f){
+        var idx = mapping[f.key];
+        lead[f.key] = idx>=0 && row[idx]!=null ? row[idx].trim() : '';
+      });
+      if(!lead.nombre) lead.nombre = 'Sin nombre';
+      return lead;
+    }).filter(function(l){ return l.nombre !== 'Sin nombre' || l.email || l.telefono; });
+
+    if(leadsToImport.length===0){ alert('No hay filas válidas para importar.'); btn.disabled=false; btn.textContent='Importar'; return; }
+
+    sb('leads', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(leadsToImport)})
+      .then(function(){
+        importData = null;
+        closeModal();
+        fetchLeads();
+      })
+      .catch(function(e){
+        alert('Error al importar: '+e.message);
+        btn.disabled = false; btn.textContent = 'Importar '+importData.rows.length+' leads';
+      });
+  }
+
+  // ---- Hub (portada) ----
+  function countForNav(key){
+    if(key==='pipeline') return leads.length + ' leads';
+    if(key==='contactos') return leads.length + ' contactos';
+    if(key==='campanas') return campanas.filter(function(c){return c.activa;}).length + ' activas';
+    if(key==='estadisticas') return leads.filter(function(l){return norm(l.estado)==='ganado';}).length + ' ganados';
+    if(key==='flujo') return runs.length + ' ejecuciones';
+    return '';
+  }
+
+  function renderHub(){
+    var elGrid = document.getElementById('hubGrid');
+    var n = NAV.length;
+    elGrid.innerHTML = NAV.map(function(item, i){
+      var ang = Math.round((360 / n) * i - 90);
+      return '<button class="hub-node" data-nav="'+item.key+'" style="--ang:'+ang+'deg; --node-color:'+item.color+'">'+
+        '<span class="hn-icon" style="color:'+item.color+'">'+item.icon+'</span>'+
+        '<span class="hn-label">'+esc(item.label)+'</span>'+
+        '<span class="hn-count">'+esc(countForNav(item.key))+'</span>'+
+      '</button>';
+    }).join('');
+    elGrid.querySelectorAll('.hub-node').forEach(function(btn){
+      btn.addEventListener('click', function(){ goTo(btn.getAttribute('data-nav')); });
+    });
+  }
+
+  function renderSidebarNav(){
+    var nav = document.getElementById('sidebarNav');
+    nav.innerHTML = NAV.map(function(item){
+      return '<button data-nav="'+item.key+'" class="'+(currentMainTab===item.key?'active':'')+'">'+
+        '<span class="nav-ic" style="color:'+item.color+'">'+item.icon+'</span>'+esc(item.label)+
+      '</button>';
+    }).join('');
+    nav.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){ goTo(btn.getAttribute('data-nav')); });
+    });
+  }
+
+  function goTo(key){
+    currentMainTab = key;
+    location.hash = key;
+    updateMainView();
+  }
+
+  // ---- wiring ----
+  document.getElementById('btnNew').addEventListener('click', openNew);
+  document.getElementById('btnImport').addEventListener('click', openImportSheets);
+  document.getElementById('search').addEventListener('input', function(e){
+    searchQuery = e.target.value;
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+  });
+  document.getElementById('segTabs').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-seg]');
+    if(!btn) return;
+    currentSeg = btn.getAttribute('data-seg');
+    document.querySelectorAll('#segTabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+  });
+  document.getElementById('sidebarBrand').addEventListener('click', function(){ goTo('hub'); });
+  elOverlay.addEventListener('click', function(e){ if(e.target===elOverlay) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !elOverlay.hidden) closeModal(); });
+  window.addEventListener('hashchange', function(){
+    var k = location.hash.replace('#','');
+    if(k && NAV.some(function(n){return n.key===k;})){ currentMainTab = k; updateMainView(); }
+    else if(!k){ currentMainTab = 'hub'; updateMainView(); }
+  });
+
+  function playTransition(el){
+    if(!el) return;
+    el.classList.remove('transitioning');
+    void el.offsetWidth;
+    el.classList.add('transitioning');
+  }
+
+  function updateMainView(){
+    var isHub = currentMainTab === 'hub';
+    elHubView.hidden = !isHub;
+    elAppShell.hidden = isHub;
+
+    if(flujoPollTimer){ clearInterval(flujoPollTimer); flujoPollTimer = null; }
+
+    if(isHub){ renderHub(); playTransition(elHubView); return; }
+
+    playTransition(document.querySelector('.main-content'));
+    var navItem = NAV.find(function(n){return n.key===currentMainTab;}) || NAV[0];
+    elPageTitle.textContent = navItem.label;
+    elTopActions.style.display = (currentMainTab==='pipeline' || currentMainTab==='contactos') ? 'flex' : 'none';
+    elStats.style.display = currentMainTab==='estadisticas' ? 'none' : '';
+    renderSidebarNav();
+
+    document.getElementById('viewPipeline').hidden = currentMainTab !== 'pipeline';
+    elFlujo.hidden = currentMainTab !== 'flujo';
+    elContactos.hidden = currentMainTab !== 'contactos';
+    elCampanas.hidden = currentMainTab !== 'campanas';
+    elEstadisticas.hidden = currentMainTab !== 'estadisticas';
+
+    renderStats();
+    renderSegTabs();
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+    if(currentMainTab === 'campanas') renderCampanas();
+    if(currentMainTab === 'estadisticas') renderEstadisticas();
+    if(currentMainTab === 'flujo'){
+      renderFlujo();
+      fetchRuns();
+      flujoPollTimer = setInterval(fetchRuns, 15000);
+    }
+  }
+
+  window.RadarKlyrex = {
+    openNew: openNew, closeModal: closeModal, saveNew: saveNew,
+    saveEdit: saveEdit, remove: remove, saveNewCampana: saveNewCampana
+  };
+
+  renderHub();
+  var startKey = location.hash.replace('#','');
+  if(startKey && NAV.some(function(n){return n.key===startKey;})){ currentMainTab = startKey; }
+  updateMainView();
+  fetchCampanas();
+  fetchLeads();
+  setInterval(fetchLeads, 10000);
+  setInterval(fetchCampanas, 20000);
+})();
+</script>
+</body>
+</html>
