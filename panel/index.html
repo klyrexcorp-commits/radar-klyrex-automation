@@ -112,6 +112,7 @@
   .btn:hover{border-color:var(--text-dim)}
   .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
   .btn.primary:hover{background:var(--accent-strong); border-color:var(--accent-strong)}
+  .btn.primary:disabled{opacity:.6; cursor:default}
   .btn.ghost{border-color:transparent; background:transparent}
   .btn.danger{color:var(--crit); border-color:var(--crit-bg)}
   .btn.sm{padding:5px 10px; font-size:12.5px}
@@ -122,6 +123,9 @@
     font-size:13px; font-weight:600; cursor:pointer;
   }
   .tabs button.active{background:var(--surface); color:var(--text); box-shadow:var(--shadow)}
+
+  .maintabs{margin-bottom:18px}
+  .maintabs button{padding:7px 18px; font-size:13.5px}
 
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px}
   .stat{
@@ -225,6 +229,46 @@
   .segpick label.auto:has(input:checked){color:var(--seg-auto); background:var(--seg-auto-bg)}
   .segpick label.web:has(input:checked){color:var(--seg-web); background:var(--seg-web-bg)}
 
+  /* Flujo */
+  .flow{display:flex; align-items:stretch; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:20px}
+  .flow-step{
+    flex:0 0 180px; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px; display:flex; flex-direction:column; gap:6px;
+  }
+  .flow-step .num{
+    width:22px; height:22px; border-radius:50%; background:var(--accent-bg); color:var(--accent-strong);
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+  }
+  .flow-step h4{margin:0; font-size:13px; font-weight:600}
+  .flow-step p{margin:0; font-size:11.5px; color:var(--text-dim); line-height:1.4}
+  .flow-arrow{flex:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:16px}
+
+  .run-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px}
+  .run-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px}
+  .run-status-badge{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:99px; white-space:nowrap}
+  .run-status-badge.ok{background:var(--ok-bg); color:var(--ok)}
+  .run-status-badge.crit{background:var(--crit-bg); color:var(--crit)}
+  .run-status-badge.pending{background:var(--accent-bg); color:var(--accent-strong)}
+  .run-status-badge.neutral{background:var(--surface-2); color:var(--text-dim)}
+  .run-list{display:flex; flex-direction:column; gap:8px}
+  .run-row{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:12.5px; flex-wrap:wrap}
+  .run-row .run-date{color:var(--text-dim); flex:1}
+  .run-row a{color:var(--text-dim); text-decoration:none; font-size:11px}
+  .run-row a:hover{color:var(--text)}
+  .flujo-note{font-size:11.5px; color:var(--text-dim); margin-top:14px}
+
+  /* Contactos */
+  .table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface)}
+  table.contactos{width:100%; border-collapse:collapse; font-size:12.5px}
+  table.contactos th{
+    text-align:left; padding:10px 12px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap; background:var(--surface-2);
+  }
+  table.contactos td{padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap}
+  table.contactos tr:last-child td{border-bottom:none}
+  table.contactos tbody tr{cursor:pointer}
+  table.contactos tbody tr:hover{background:var(--surface-2)}
+
   @media (max-width:640px){
     .field-row{grid-template-columns:1fr}
     header.top{align-items:flex-start}
@@ -252,9 +296,21 @@
     </div>
   </header>
 
+  <div class="tabs maintabs" id="mainTabs">
+    <button data-tab="pipeline" class="active">Pipeline</button>
+    <button data-tab="flujo">Flujo</button>
+    <button data-tab="contactos">Contactos</button>
+  </div>
+
   <div class="stats" id="stats"></div>
 
-  <div id="boardWrap"></div>
+  <div id="viewPipeline">
+    <div id="boardWrap"></div>
+  </div>
+
+  <div id="viewFlujo" hidden></div>
+
+  <div id="viewContactos" hidden></div>
 </div>
 
 <div class="overlay" id="overlay" hidden>
@@ -265,6 +321,11 @@
 (function(){
   var SUPABASE_URL = 'https://znlafkmfvtgcwgwjytdm.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_p-GPSrRqP37tUMGPI1wVBg_NrOyn2nJ';
+
+  var GITHUB_OWNER = 'klyrexcorp-commits';
+  var GITHUB_REPO = 'radar-klyrex-automation';
+  var GITHUB_WORKFLOW = 'send-sequence.yml';
+  var GITHUB_TOKEN = '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';
 
   var STATUSES = [
     {key:'nuevo', label:'Nuevo'},
@@ -282,11 +343,14 @@
   var leads = [];
   var currentSeg = 'todos';
   var searchQuery = '';
+  var currentMainTab = 'pipeline';
 
   var elBoard = document.getElementById('boardWrap');
   var elStats = document.getElementById('stats');
   var elOverlay = document.getElementById('overlay');
   var elModal = document.getElementById('modal');
+  var elFlujo = document.getElementById('viewFlujo');
+  var elContactos = document.getElementById('viewContactos');
 
   function esc(s){
     return String(s==null?'':s).replace(/[&<>"']/g, function(c){
@@ -299,6 +363,10 @@
     if(n>=70) return 'hi';
     if(n>=40) return 'mid';
     return 'lo';
+  }
+  function statusLabel(key){
+    var s = STATUSES.find(function(x){return x.key===key;});
+    return s ? s.label : key;
   }
 
   // ---- Supabase REST helpers ----
@@ -337,9 +405,184 @@
     return sb('leads?id=eq.'+id, {method:'DELETE'}).then(fetchLeads);
   }
 
+  // ---- GitHub REST helpers ----
+  function gh(path, options){
+    options = options || {};
+    var headers = Object.assign({
+      Authorization: 'Bearer ' + GITHUB_TOKEN,
+      Accept: 'application/vnd.github+json'
+    }, options.headers || {});
+    return fetch('https://api.github.com' + path, Object.assign({}, options, {headers: headers}))
+      .then(function(res){
+        if(res.status === 204){
+          if(!res.ok) throw new Error('HTTP ' + res.status);
+          return null;
+        }
+        return res.text().then(function(t){
+          var data = t ? JSON.parse(t) : null;
+          if(!res.ok) throw new Error((data && data.message) || ('HTTP ' + res.status));
+          return data;
+        });
+      });
+  }
+
+  var runs = [];
+  var flujoError = '';
+  var triggering = false;
+  var flujoPollTimer = null;
+
+  function fetchRuns(){
+    return gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/runs?per_page=8')
+      .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
+      .catch(function(e){ flujoError = e.message; renderFlujo(); });
+  }
+
+  function triggerRun(){
+    if(triggering) return;
+    triggering = true;
+    renderFlujo();
+    gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/dispatches', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ref:'main'})
+    })
+      .then(function(){ return new Promise(function(r){ setTimeout(r, 2500); }); })
+      .then(function(){ return fetchRuns(); })
+      .catch(function(e){ flujoError = 'Error al lanzar: ' + e.message; })
+      .then(function(){ triggering = false; renderFlujo(); });
+  }
+
+  function statusInfo(run){
+    if(run.status !== 'completed'){
+      return {label: run.status==='in_progress' ? 'En curso' : 'En cola', cls:'pending'};
+    }
+    if(run.conclusion === 'success') return {label:'Correcto', cls:'ok'};
+    if(run.conclusion === 'failure') return {label:'Fallo', cls:'crit'};
+    return {label: run.conclusion || 'Desconocido', cls:'neutral'};
+  }
+  function fmtDateTime(iso){
+    var d = new Date(iso);
+    return d.toLocaleString('es-ES', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+  }
+  function flowStep(n, title, desc){
+    return '<div class="flow-step"><span class="num tabular">'+n+'</span><h4>'+esc(title)+'</h4><p>'+esc(desc)+'</p></div>';
+  }
+  function flowArrow(){ return '<div class="flow-arrow">→</div>'; }
+  function runRowHtml(r){
+    var info = statusInfo(r);
+    return '<div class="run-row">' +
+      '<span class="run-status-badge '+info.cls+'">'+info.label+'</span>' +
+      '<span class="run-date mono">'+fmtDateTime(r.created_at)+' · #'+r.run_number+'</span>' +
+      '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub ↗</a>' +
+    '</div>';
+  }
+
+  function renderFlujo(){
+    var last = runs[0];
+    var lastInfo = last ? statusInfo(last) : null;
+    var html = '';
+    html += '<div class="flow">' +
+      flowStep(1, 'Prospección', 'Apify / búsquedas manuales encuentran negocios y empresas') +
+      flowArrow() +
+      flowStep(2, 'Supabase', 'Los leads se guardan en la tabla central (leads)') +
+      flowArrow() +
+      flowStep(3, 'GitHub Actions', 'Cada día a las 8:00 UTC revisa a quién toca contactar') +
+      flowArrow() +
+      flowStep(4, 'Gmail', 'Envía el email de la secuencia desde info@klyrex.es') +
+      flowArrow() +
+      flowStep(5, 'Supabase', 'Marca el lead como Contactado y guarda la fecha') +
+    '</div>';
+
+    html += '<div class="run-card">' +
+      '<div class="run-head">' +
+        '<div>' +
+          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Última ejecución</div>' +
+          (last ?
+            '<span class="run-status-badge '+lastInfo.cls+'">'+lastInfo.label+'</span> ' +
+            '<span class="mono" style="font-size:12.5px;color:var(--text-dim)">'+fmtDateTime(last.created_at)+' · #'+last.run_number+'</span>'
+            : '<span style="color:var(--text-dim);font-size:13px">Sin ejecuciones todavía</span>') +
+        '</div>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn sm" id="btnRefreshRuns" title="Actualizar">↻</button>' +
+          '<button class="btn primary" id="btnTriggerRun"'+(triggering?' disabled':'')+'>'+(triggering?'Lanzando…':'▶ Ejecutar ahora')+'</button>' +
+        '</div>' +
+      '</div>' +
+      (flujoError ? '<div style="color:var(--crit);font-size:12.5px;margin-bottom:10px">'+esc(flujoError)+'</div>' : '') +
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Próxima ejecución automática: todos los días a las 8:00 UTC (≈9-10h en España)</div>' +
+      '<div class="run-list">' +
+        (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">Todavía no hay historial de ejecuciones.</div>') +
+      '</div>' +
+      '<div class="flujo-note">Esta pestaña usa una clave de GitHub limitada solo a lanzar y leer ejecuciones de este repositorio.</div>' +
+    '</div>';
+
+    elFlujo.innerHTML = html;
+    var btnTrigger = document.getElementById('btnTriggerRun');
+    if(btnTrigger) btnTrigger.addEventListener('click', triggerRun);
+    var btnRefresh = document.getElementById('btnRefreshRuns');
+    if(btnRefresh) btnRefresh.addEventListener('click', fetchRuns);
+  }
+
+  function renderContactos(){
+    var list = filtered();
+    if(list.length === 0){
+      elContactos.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No hay contactos que coincidan</div></div>';
+      return;
+    }
+    var rows = list.map(function(l){
+      var seg = SEGMENTS[l.segmento] || {label:l.segmento, chip:'auto'};
+      return '<tr data-id="'+l.id+'">' +
+        '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
+        '<td><span class="chip '+seg.chip+'">'+esc(seg.label)+'</span></td>' +
+        '<td>'+esc(l.contacto)+'</td>' +
+        '<td>'+esc(l.telefono)+'</td>' +
+        '<td>'+esc(l.email)+'</td>' +
+        '<td>'+esc(l.ciudad)+'</td>' +
+        '<td>'+esc(statusLabel(norm(l.estado)))+'</td>' +
+        '<td class="tabular">'+(l.toque||0)+'</td>' +
+        '<td class="tabular">'+(l.score!=null?l.score:'')+'</td>' +
+      '</tr>';
+    }).join('');
+    elContactos.innerHTML =
+      '<div style="display:flex;justify-content:flex-end;margin-bottom:10px">'+
+        '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+      '</div>'+
+      '<div class="table-wrap"><table class="contactos"><thead><tr>'+
+        '<th>Nombre</th><th>Segmento</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Estado</th><th>Toque</th><th>Score</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    elContactos.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
+      tr.addEventListener('click', function(){ openDetail(tr.getAttribute('data-id')); });
+    });
+    var exportBtn = document.getElementById('btnExportCsv');
+    if(exportBtn) exportBtn.addEventListener('click', exportCsv);
+  }
+
+  function exportCsv(){
+    var list = filtered();
+    var headers = ['nombre','segmento','contacto','telefono','email','ciudad','estado','toque','score','origen','notas'];
+    var lines = [headers.join(',')];
+    list.forEach(function(l){
+      var row = headers.map(function(h){
+        var v = l[h] == null ? '' : String(l[h]);
+        if(v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1){
+          v = '"' + v.replace(/"/g, '""') + '"';
+        }
+        return v;
+      });
+      lines.push(row.join(','));
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'radar-klyrex-contactos.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
   function render(){
     renderStats();
-    renderBoard();
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
   }
 
   function renderStats(){
@@ -565,17 +808,42 @@
   document.getElementById('btnNew').addEventListener('click', openNew);
   document.getElementById('search').addEventListener('input', function(e){
     searchQuery = e.target.value;
-    renderBoard();
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
   });
   document.getElementById('segTabs').addEventListener('click', function(e){
     var btn = e.target.closest('button[data-seg]');
     if(!btn) return;
     currentSeg = btn.getAttribute('data-seg');
     document.querySelectorAll('#segTabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
-    renderBoard();
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+  });
+  document.getElementById('mainTabs').addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-tab]');
+    if(!btn) return;
+    currentMainTab = btn.getAttribute('data-tab');
+    document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+    updateMainView();
   });
   elOverlay.addEventListener('click', function(e){ if(e.target===elOverlay) closeModal(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !elOverlay.hidden) closeModal(); });
+
+  function updateMainView(){
+    document.getElementById('viewPipeline').hidden = currentMainTab !== 'pipeline';
+    elFlujo.hidden = currentMainTab !== 'flujo';
+    elContactos.hidden = currentMainTab !== 'contactos';
+
+    if(flujoPollTimer){ clearInterval(flujoPollTimer); flujoPollTimer = null; }
+
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+    if(currentMainTab === 'flujo'){
+      renderFlujo();
+      fetchRuns();
+      flujoPollTimer = setInterval(fetchRuns, 15000);
+    }
+  }
 
   window.RadarKlyrex = {
     openNew: openNew, closeModal: closeModal, saveNew: saveNew,
