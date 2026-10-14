@@ -13,86 +13,29 @@ for (const [name, value] of Object.entries({ SUPABASE_URL, SUPABASE_SECRET_KEY, 
   }
 }
 
-const plantillasWeb = [
-  { asunto: d => `¿Te encuentran tus clientes en Google, ${d.nombre}?`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'},
-
-Vi ${d.nombre} en Google Maps — se nota que el negocio funciona bien. Pero no encontré una web donde la gente pueda ver horarios, servicios o reservar sin llamar.
-
-Ayudo a negocios de ${d.ciudad} a tener una web sencilla y profesional en pocos días, pensada para traer más clientes, no solo para "estar en internet".
-
-¿Te va bien una llamada de 10 minutos esta semana para ver si encaja?
-
-Un saludo,
-Ignacio — Klyrex
-Si prefieres no recibir más correos, respóndeme con "baja" y no te escribo más.` },
-  { asunto: d => `Re: ¿Te encuentran tus clientes en Google, ${d.nombre}?`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'}, te escribo de nuevo por si el correo anterior se perdió.
-
-Muchos negocios como el tuyo pierden clientes simplemente porque, al buscarlos, la competencia sí aparece con web y ellos no. Es un cambio rápido y con resultado visible desde el primer mes.
-
-¿Hay algún día esta semana que te venga bien para hablar 10 minutos?
-
-Ignacio — Klyrex` },
-  { asunto: d => `Último mensaje, ${d.nombre}`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'}, no quiero ser pesado — este es el último correo que te envío por ahora.
-
-Si en algún momento te interesa tener una web para ${d.nombre}, aquí me tienes.
-
-Un saludo,
-Ignacio — Klyrex` }
-];
-
-const plantillasAuto = [
-  { asunto: d => `¿Cuántas horas a la semana se van en tareas repetitivas en ${d.nombre}?`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'},
-
-Trabajo con empresas de ${d.ciudad} ayudándolas a automatizar tareas que hoy se hacen a mano (pedidos, facturas, seguimiento de clientes...), liberando horas del equipo sin cambiar las herramientas que ya usáis.
-
-¿Tenéis 15 minutos esta semana para ver si hay algo automatizable en ${d.nombre}? Sin compromiso.
-
-Ignacio — Klyrex
-Si no es de tu interés, respóndeme "baja" y no insisto más.` },
-  { asunto: () => `Un ejemplo rápido`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'}, te doy un ejemplo concreto: una empresa similar a ${d.nombre} redujo el tiempo de gestión de pedidos de 2 horas diarias a 15 minutos automatizando solo esa parte.
-
-¿Vemos si algo parecido aplica en vuestro caso? 15 minutos, sin compromiso.
-
-Ignacio — Klyrex` },
-  { asunto: d => `Cierro el tema por ahora, ${d.nombre}`,
-    cuerpo: d => `Hola ${d.contacto || 'equipo'}, dejo de insistir con esto — si en el futuro os interesa revisar procesos que se puedan automatizar, aquí me tenéis.
-
-Un saludo,
-Ignacio — Klyrex` }
-];
-
-const INTERVALOS = [0, 4, 5]; // días de espera antes del toque 1, 2, 3
-
-function elegibles(rows) {
-  const hoy = new Date();
-  const out = [];
-  for (const d of rows) {
-    const estado = (d.estado || '').toLowerCase();
-    if (['baja', 'respondido', 'ganado', 'perdido'].includes(estado)) continue;
-    if (!d.email) continue;
-
-    const toque = Number(d.toque || 0);
-    if (toque >= 3) continue;
-
-    if (toque > 0 && d.fecha_ultimo_envio) {
-      const ultimo = new Date(d.fecha_ultimo_envio);
-      const dias = (hoy - ultimo) / (1000 * 60 * 60 * 24);
-      if (dias < INTERVALOS[toque]) continue;
-    }
-    out.push(d);
+async function leerCampanas() {
+  const params = new URLSearchParams({
+    select: '*,campana_toques(*)',
+    activa: 'eq.true'
+  });
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/campanas?${params}`, {
+    headers: { apikey: SUPABASE_SECRET_KEY }
+  });
+  if (!res.ok) {
+    throw new Error(`Error leyendo campañas: HTTP ${res.status} - ${await res.text()}`);
   }
-  return out;
+  const campanas = await res.json();
+  for (const c of campanas) {
+    c.campana_toques.sort((a, b) => a.orden - b.orden);
+  }
+  return campanas;
 }
 
 async function leerLeadsPendientes() {
   const params = new URLSearchParams({
     select: '*',
     estado: 'not.in.(baja,respondido,ganado,perdido)',
+    campana_id: 'not.is.null',
     order: 'created_at.asc'
   });
   const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?${params}`, {
@@ -119,14 +62,33 @@ async function actualizarLead(id, patch) {
   }
 }
 
-function construirMensaje(d) {
-  const toque = Number(d.toque || 0);
-  const set = d.segmento === 'web' ? plantillasWeb : plantillasAuto;
-  const plantilla = set[toque];
-  return {
-    subject: plantilla.asunto(d),
-    body: plantilla.cuerpo(d)
-  };
+function rellenarPlantilla(texto, lead) {
+  return String(texto || '')
+    .replace(/\{negocio\}/g, lead.nombre || 'tu negocio')
+    .replace(/\{contacto\}/g, lead.contacto || 'equipo')
+    .replace(/\{ciudad\}/g, lead.ciudad || 'tu zona');
+}
+
+function elegibles(leads, campanasPorId) {
+  const hoy = new Date();
+  const out = [];
+  for (const d of leads) {
+    if (!d.email) continue;
+    const campana = campanasPorId.get(d.campana_id);
+    if (!campana) continue;
+
+    const toque = Number(d.toque || 0);
+    const siguienteToque = campana.campana_toques[toque];
+    if (!siguienteToque) continue;
+
+    if (toque > 0 && d.fecha_ultimo_envio) {
+      const ultimo = new Date(d.fecha_ultimo_envio);
+      const dias = (hoy - ultimo) / (1000 * 60 * 60 * 24);
+      if (dias < siguienteToque.espera_dias) continue;
+    }
+    out.push({ lead: d, campana, toqueActual: siguienteToque });
+  }
+  return out;
 }
 
 async function main() {
@@ -135,12 +97,17 @@ async function main() {
     auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD }
   });
 
-  const todos = await leerLeadsPendientes();
-  const pendientes = elegibles(todos);
-  console.log(`Leads totales no cerrados: ${todos.length}. Pendientes de envío hoy: ${pendientes.length}.`);
+  const campanas = await leerCampanas();
+  const campanasPorId = new Map(campanas.map(c => [c.id, c]));
+  console.log(`Campañas activas: ${campanas.length} (${campanas.map(c => `${c.nombre}: ${c.campana_toques.length} toques`).join(', ') || 'ninguna'}).`);
 
-  for (const lead of pendientes) {
-    const { subject, body } = construirMensaje(lead);
+  const todos = await leerLeadsPendientes();
+  const pendientes = elegibles(todos, campanasPorId);
+  console.log(`Leads totales no cerrados con campaña: ${todos.length}. Pendientes de envío hoy: ${pendientes.length}.`);
+
+  for (const { lead, toqueActual } of pendientes) {
+    const subject = rellenarPlantilla(toqueActual.asunto, lead);
+    const body = rellenarPlantilla(toqueActual.cuerpo, lead);
     try {
       await transporter.sendMail({
         from: `"Ignacio - Klyrex" <${GMAIL_FROM_ADDRESS}>`,
