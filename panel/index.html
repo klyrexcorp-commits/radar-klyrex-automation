@@ -4,77 +4,71 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Radar Klyrex</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
   :root{
-    --bg:#eef1f4; --surface:#ffffff; --surface-2:#f7f8fa; --border:#d8dee5;
-    --text:#161a20; --text-dim:#5b6675;
-    --accent:#b8781f; --accent-strong:#96620f; --accent-ink:#ffffff; --accent-bg:#f7e8d2;
-    --seg-auto:#177b73; --seg-auto-bg:#dff2f0;
-    --seg-web:#a83355; --seg-web-bg:#fbe4ea;
-    --ok:#2f7a4d; --ok-bg:#e1f2e6;
-    --crit:#a83355; --crit-bg:#fbe4ea;
-    --grid-dot:rgba(22,26,32,.055);
-    --shadow:0 1px 2px rgba(20,25,32,.07), 0 10px 28px -14px rgba(20,25,32,.24);
+    --bg:#f3f4f6; --surface:#ffffff; --surface-2:#f6f7f9; --border:#dde1e6;
+    --text:#13161c; --text-dim:#5b6472;
+    --accent:#b8781f; --accent-strong:#8f5e18; --accent-ink:#ffffff; --accent-bg:#f5e8d4;
+    --seg-auto:#0f766e; --seg-auto-bg:#d9f1ee;
+    --seg-web:#9d174d; --seg-web-bg:#fbdde9;
+    --node-blue:#2a78d6; --node-blue-bg:#dde8fb;
+    --node-orange:#eb6834; --node-orange-bg:#f8ddc9;
+    --ok:#15803d; --ok-bg:#dcf3e3;
+    --crit:#b91c3c; --crit-bg:#fbdde4;
+    --grid-dot:rgba(19,22,28,.05);
+    --shadow:0 1px 2px rgba(15,18,24,.06), 0 10px 26px -14px rgba(15,18,24,.22);
+    --sidebar-w:226px;
     color-scheme:light;
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
-      --bg:#0f1319; --surface:#161c24; --surface-2:#1c2430; --border:#2a3340;
-      --text:#e7ebf0; --text-dim:#8d9aab;
+      --bg:#0c0e12; --surface:#15181f; --surface-2:#1b1f27; --border:#272c36;
+      --text:#eef0f3; --text-dim:#99a1ad;
       --accent:#e3a63f; --accent-strong:#f0b658; --accent-ink:#10141a; --accent-bg:rgba(227,166,63,.14);
-      --seg-auto:#4fd0c4; --seg-auto-bg:rgba(79,208,196,.13);
-      --seg-web:#ef7a93; --seg-web-bg:rgba(239,122,147,.13);
-      --ok:#6bc98d; --ok-bg:rgba(107,201,141,.13);
-      --crit:#ef7a93; --crit-bg:rgba(239,122,147,.13);
-      --grid-dot:rgba(255,255,255,.05);
-      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px -14px rgba(0,0,0,.55);
+      --seg-auto:#4dd6c8; --seg-auto-bg:rgba(77,214,200,.13);
+      --seg-web:#f0789f; --seg-web-bg:rgba(240,120,159,.13);
+      --node-blue:#3987e5; --node-blue-bg:rgba(108,162,242,.14);
+      --node-orange:#d95926; --node-orange-bg:rgba(240,146,79,.14);
+      --ok:#5fcb86; --ok-bg:rgba(95,203,134,.13);
+      --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
+      --grid-dot:rgba(255,255,255,.045);
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
       color-scheme:dark;
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0f1319; --surface:#161c24; --surface-2:#1c2430; --border:#2a3340;
-    --text:#e7ebf0; --text-dim:#8d9aab;
+    --bg:#0c0e12; --surface:#15181f; --surface-2:#1b1f27; --border:#272c36;
+    --text:#eef0f3; --text-dim:#99a1ad;
     --accent:#e3a63f; --accent-strong:#f0b658; --accent-ink:#10141a; --accent-bg:rgba(227,166,63,.14);
-    --seg-auto:#4fd0c4; --seg-auto-bg:rgba(79,208,196,.13);
-    --seg-web:#ef7a93; --seg-web-bg:rgba(239,122,147,.13);
-    --ok:#6bc98d; --ok-bg:rgba(107,201,141,.13);
-    --crit:#ef7a93; --crit-bg:rgba(239,122,147,.13);
-    --grid-dot:rgba(255,255,255,.05);
-    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px -14px rgba(0,0,0,.55);
+    --seg-auto:#4dd6c8; --seg-auto-bg:rgba(77,214,200,.13);
+    --seg-web:#f0789f; --seg-web-bg:rgba(240,120,159,.13);
+    --node-blue:#3987e5; --node-blue-bg:rgba(108,162,242,.14);
+    --node-orange:#d95926; --node-orange-bg:rgba(240,146,79,.14);
+    --ok:#5fcb86; --ok-bg:rgba(95,203,134,.13);
+    --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
+    --grid-dot:rgba(255,255,255,.045);
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
     color-scheme:dark;
   }
 
   *{box-sizing:border-box}
-  html,body{margin:0}
+  html,body{margin:0; height:100%}
   body{
     background-color:var(--bg); color:var(--text);
     background-image:radial-gradient(var(--grid-dot) 1px, transparent 1px);
-    background-size:24px 24px;
+    background-size:22px 22px;
     font-family:"IBM Plex Sans", system-ui, sans-serif;
-    padding-inline:16px;
   }
   h1,h2,h3,.display{font-family:"Sora", system-ui, sans-serif; text-wrap:balance}
   .mono, .tabular{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums}
   button{font-family:inherit}
   ::selection{background:var(--accent-bg)}
+  a{color:inherit}
 
-  .wrap{max-width:1400px; margin-inline:auto; padding-block:20px 40px}
-
-  header.top{
-    display:flex; flex-wrap:wrap; gap:14px 24px; align-items:flex-end; justify-content:space-between;
-    margin-bottom:18px;
-  }
-  .brand{display:flex; flex-direction:row; align-items:center; gap:14px}
-  .brand-text{display:flex; flex-direction:column; gap:2px}
-  .brand .eyebrow{
-    font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); font-weight:600;
-  }
-  .brand h1{font-size:27px; font-weight:700; margin:0; letter-spacing:-.01em}
-  .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-
+  /* ---- Radar mark (logo + hub) ---- */
   .radar-mark{
-    width:50px; height:50px; flex:none; border-radius:50%; position:relative;
+    width:44px; height:44px; flex:none; border-radius:50%; position:relative;
     border:1px solid var(--border); overflow:hidden;
     background:
       radial-gradient(circle at 50% 50%, transparent 0 29%, var(--border) 30% 31%, transparent 32%),
@@ -89,11 +83,78 @@
   .radar-mark::after{
     content:''; position:absolute; left:50%; top:50%; width:5px; height:5px; margin:-2.5px;
     background:var(--accent); border-radius:50%;
-    box-shadow:-16px -7px 0 -1.5px var(--seg-auto), 13px 11px 0 -1.5px var(--seg-web);
+    box-shadow:-14px -6px 0 -1.5px var(--seg-auto), 11px 9px 0 -1.5px var(--seg-web);
   }
-  .radar-mark.lg{width:76px; height:76px}
+  .radar-mark.lg{width:280px; height:280px}
+  .radar-mark.lg::after{ width:10px; height:10px; margin:-5px;
+    box-shadow:-88px -38px 0 -3px var(--seg-auto), 70px 56px 0 -3px var(--seg-web), 10px -92px 0 -3px var(--node-blue), -40px 86px 0 -3px var(--node-orange);
+  }
   @keyframes radar-sweep{ to{ transform:rotate(360deg); } }
   @media (prefers-reduced-motion:reduce){ .radar-mark::before{ animation:none } }
+
+  /* ---- Hub (portada) ---- */
+  #hubView{
+    min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:36px; padding:60px 20px 80px; text-align:center;
+  }
+  #hubView[hidden]{ display:none; }
+  .hub-eyebrow{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700}
+  .hub-title{font-size:34px; font-weight:800; margin:4px 0 0; letter-spacing:-.02em}
+  .hub-sub{font-size:14px; color:var(--text-dim); max-width:440px; margin-top:4px}
+  .hub-radar-wrap{position:relative; width:480px; height:480px; margin-top:10px; display:flex; align-items:center; justify-content:center}
+  .hub-node{
+    position:absolute; top:50%; left:50%; width:104px; height:104px; margin:-52px;
+    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1));
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--node-color);
+    border-radius:14px; box-shadow:var(--shadow); cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease; padding:10px;
+  }
+  .hub-node:hover{
+    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1)) scale(1.07);
+    box-shadow:0 1px 2px rgba(15,18,24,.08), 0 16px 30px -12px rgba(15,18,24,.3);
+  }
+  .hub-node .hn-icon{font-size:20px; line-height:1}
+  .hub-node .hn-label{font-size:12.5px; font-weight:700; color:var(--text)}
+  .hub-node .hn-count{font-size:10.5px; color:var(--text-dim); font-family:"IBM Plex Mono",monospace}
+  @media (max-width:640px){
+    .hub-radar-wrap{width:auto; height:auto; display:block}
+    .hub-radar-wrap .radar-mark.lg{display:none}
+    .hub-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:380px; margin:0 auto}
+    .hub-grid .hub-node{position:static; transform:none !important; margin:0; width:auto; height:auto; padding:16px 10px}
+  }
+  @media (min-width:641px){ .hub-grid{display:contents} }
+
+  /* ---- App shell ---- */
+  #appShell{display:flex; min-height:100%}
+  #appShell[hidden]{ display:none; }
+  .sidebar{
+    width:var(--sidebar-w); flex:none; background:var(--surface); border-right:1px solid var(--border);
+    padding:18px 12px; display:flex; flex-direction:column; gap:14px; position:sticky; top:0; height:100vh;
+    overflow-y:auto;
+  }
+  .sidebar-brand{display:flex; align-items:center; gap:10px; padding:4px 6px 14px; cursor:pointer; border-bottom:1px solid var(--border); margin-bottom:2px}
+  .sidebar-brand .radar-mark{width:36px; height:36px}
+  .sidebar-brand .sb-name{font-family:"Sora",sans-serif; font-weight:700; font-size:15px}
+  .sidebar-brand .sb-sub{font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em; font-weight:600}
+  .sidebar nav{display:flex; flex-direction:column; gap:2px}
+  .sidebar nav button{
+    display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:9px; border:none; background:none;
+    color:var(--text-dim); font-weight:600; font-size:13px; text-align:left; cursor:pointer; width:100%;
+  }
+  .sidebar nav button .nav-ic{width:18px; text-align:center; font-size:14px}
+  .sidebar nav button:hover{background:var(--surface-2); color:var(--text)}
+  .sidebar nav button.active{background:var(--accent-bg); color:var(--accent-strong)}
+  .sidebar-foot{margin-top:auto; font-size:10.5px; color:var(--text-dim); padding:10px 6px 2px; border-top:1px solid var(--border)}
+
+  .main-content{flex:1; min-width:0; padding:22px 28px 48px}
+
+  header.top{
+    display:flex; flex-wrap:wrap; gap:14px 24px; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .page-title{font-size:21px; font-weight:700; margin:0}
+  .top-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
 
   input[type="text"], input[type="search"], input[type="tel"], input[type="email"], input[type="date"], input[type="number"], select, textarea{
     background:var(--surface); color:var(--text); border:1px solid var(--border);
@@ -112,7 +173,6 @@
   .btn:hover{border-color:var(--text-dim)}
   .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
   .btn.primary:hover{background:var(--accent-strong); border-color:var(--accent-strong)}
-  .btn.primary:disabled{opacity:.6; cursor:default}
   .btn.ghost{border-color:transparent; background:transparent}
   .btn.danger{color:var(--crit); border-color:var(--crit-bg)}
   .btn.sm{padding:5px 10px; font-size:12.5px}
@@ -124,94 +184,58 @@
   }
   .tabs button.active{background:var(--surface); color:var(--text); box-shadow:var(--shadow)}
 
-  .maintabs{margin-bottom:18px}
-  .maintabs button{padding:7px 18px; font-size:13.5px}
-
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px}
   .stat{
     position:relative; overflow:hidden;
     background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:15px 16px 13px;
     display:flex; flex-direction:column; gap:3px;
   }
-  .stat::before{
-    content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent);
-  }
+  .stat::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); }
   .stat .n{font-size:25px; font-weight:600; font-family:"IBM Plex Mono",monospace}
   .stat .l{font-size:11.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; font-weight:600}
-  .stat.auto::before{background:var(--seg-auto)}
-  .stat.auto .n{color:var(--seg-auto)}
-  .stat.web::before{background:var(--seg-web)}
-  .stat.web .n{color:var(--seg-web)}
-  .stat.ok::before{background:var(--ok)}
-  .stat.ok .n{color:var(--ok)}
+  .stat.auto::before{background:var(--seg-auto)} .stat.auto .n{color:var(--seg-auto)}
+  .stat.web::before{background:var(--seg-web)} .stat.web .n{color:var(--seg-web)}
+  .stat.ok::before{background:var(--ok)} .stat.ok .n{color:var(--ok)}
+  .stat.blue::before{background:var(--node-blue)} .stat.blue .n{color:var(--node-blue)}
 
   .board{display:flex; gap:14px; overflow-x:auto; padding-bottom:10px}
   .col{
-    flex:0 0 250px; background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
-    display:flex; flex-direction:column; max-height:calc(100vh - 220px); min-height:220px;
+    flex:0 0 240px; background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+    display:flex; flex-direction:column; max-height:calc(100vh - 260px); min-height:220px;
   }
-  .col-head{
-    padding:11px 13px 9px; display:flex; align-items:center; justify-content:space-between;
-    font-weight:600; font-size:13px; border-bottom:1px solid var(--border);
-  }
+  .col-head{ padding:11px 13px 9px; display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:13px; border-bottom:1px solid var(--border); }
   .col-head.ok span:first-child{color:var(--ok)}
   .col-head.crit span:first-child{color:var(--crit)}
-  .col-head .count{
-    font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-dim);
-    background:var(--surface); border:1px solid var(--border); border-radius:99px; padding:1px 8px;
-  }
+  .col-head .count{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:99px; padding:1px 8px; }
   .col-body{padding:9px; display:flex; flex-direction:column; gap:9px; overflow-y:auto}
   .col.dragover{outline:2px dashed var(--accent); outline-offset:-2px}
   .col-empty{color:var(--text-dim); font-size:12px; text-align:center; padding:18px 6px}
 
   .card{
     background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--border);
-    border-radius:10px; padding:11px 12px 11px 10px;
-    box-shadow:var(--shadow); cursor:pointer; display:flex; flex-direction:column; gap:7px;
-    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    border-radius:10px; padding:11px 12px 11px 10px; box-shadow:var(--shadow); cursor:pointer;
+    display:flex; flex-direction:column; gap:7px; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
   .card:hover{border-color:var(--text-dim); transform:translateY(-1px)}
   .card[data-segment="automatizacion"]{border-left-color:var(--seg-auto)}
   .card[data-segment="web"]{border-left-color:var(--seg-web)}
   .card-top{display:flex; justify-content:space-between; gap:8px; align-items:center}
   .card-name{font-weight:600; font-size:13.5px; line-height:1.25}
-  .score-ring{
-    width:32px; height:32px; flex:none; border-radius:50%;
-    background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .score-ring-inner{
-    width:23px; height:23px; border-radius:50%; background:var(--surface);
-    display:flex; align-items:center; justify-content:center;
-    font-size:10px; font-weight:600; color:var(--text);
-  }
+  .score-ring{ width:32px; height:32px; flex:none; border-radius:50%; background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0); display:flex; align-items:center; justify-content:center; }
+  .score-ring-inner{ width:23px; height:23px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--text); }
   .chips{display:flex; gap:6px; flex-wrap:wrap}
-  .chip{
-    font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px; letter-spacing:.02em;
-  }
+  .chip{ font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
   .chip.auto{background:var(--seg-auto-bg); color:var(--seg-auto)}
   .chip.web{background:var(--seg-web-bg); color:var(--seg-web)}
   .chip.toque{background:var(--surface-2); color:var(--text-dim)}
   .card-meta{font-size:11.5px; color:var(--text-dim); display:flex; flex-direction:column; gap:2px}
-  .card select.status-quick{
-    width:100%; font-size:11.5px; padding:4px 7px; margin-top:2px;
-  }
+  .card select.status-quick{ width:100%; font-size:11.5px; padding:4px 7px; margin-top:2px; }
 
-  .empty-state{
-    text-align:center; padding:60px 20px; color:var(--text-dim); border:1px dashed var(--border);
-    border-radius:14px; display:flex; flex-direction:column; align-items:center; gap:12px;
-  }
+  .empty-state{ text-align:center; padding:60px 20px; color:var(--text-dim); border:1px dashed var(--border); border-radius:14px; display:flex; flex-direction:column; align-items:center; gap:12px; }
 
-  .overlay{
-    position:fixed; inset:0; background:rgba(10,13,18,.5); display:flex; align-items:center;
-    justify-content:center; padding:20px; z-index:50;
-  }
+  .overlay{ position:fixed; inset:0; background:rgba(10,13,18,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
   .overlay[hidden]{ display:none; }
-  .modal{
-    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px;
-    width:100%; max-width:480px; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow);
-    display:flex; flex-direction:column; gap:14px;
-  }
+  .modal{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px; }
   .modal h2{font-size:18px; margin:0}
   .field{display:flex; flex-direction:column; gap:4px}
   .field label{font-size:11.5px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em}
@@ -220,10 +244,7 @@
   .modal-actions{display:flex; justify-content:space-between; gap:10px; margin-top:4px; align-items:center}
   .modal-actions .right{display:flex; gap:8px}
   .segpick{display:flex; gap:8px}
-  .segpick label{
-    flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:12.5px;
-    font-weight:600; text-align:center; cursor:pointer; color:var(--text-dim);
-  }
+  .segpick label{ flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:12.5px; font-weight:600; text-align:center; cursor:pointer; color:var(--text-dim); }
   .segpick input{display:none}
   .segpick label:has(input:checked){border-color:currentColor}
   .segpick label.auto:has(input:checked){color:var(--seg-auto); background:var(--seg-auto-bg)}
@@ -231,18 +252,11 @@
 
   /* Flujo */
   .flow{display:flex; align-items:stretch; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:20px}
-  .flow-step{
-    flex:0 0 180px; background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:14px; display:flex; flex-direction:column; gap:6px;
-  }
-  .flow-step .num{
-    width:22px; height:22px; border-radius:50%; background:var(--accent-bg); color:var(--accent-strong);
-    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
-  }
+  .flow-step{ flex:0 0 180px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px; }
+  .flow-step .num{ width:22px; height:22px; border-radius:50%; background:var(--accent-bg); color:var(--accent-strong); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
   .flow-step h4{margin:0; font-size:13px; font-weight:600}
   .flow-step p{margin:0; font-size:11.5px; color:var(--text-dim); line-height:1.4}
   .flow-arrow{flex:0 0 20px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:16px}
-
   .run-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px}
   .run-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px}
   .run-status-badge{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:99px; white-space:nowrap}
@@ -260,57 +274,107 @@
   /* Contactos */
   .table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface)}
   table.contactos{width:100%; border-collapse:collapse; font-size:12.5px}
-  table.contactos th{
-    text-align:left; padding:10px 12px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
-    color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap; background:var(--surface-2);
-  }
+  table.contactos th{ text-align:left; padding:10px 12px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap; background:var(--surface-2); }
   table.contactos td{padding:9px 12px; border-bottom:1px solid var(--border); white-space:nowrap}
   table.contactos tr:last-child td{border-bottom:none}
   table.contactos tbody tr{cursor:pointer}
   table.contactos tbody tr:hover{background:var(--surface-2)}
 
+  /* Campañas */
+  .camp-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px}
+  @media (max-width:800px){ .camp-grid{grid-template-columns:1fr} }
+  .camp-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px}
+  .camp-card h3{margin:0 0 2px; font-size:15px; display:flex; align-items:center; gap:8px}
+  .camp-card .camp-sub{font-size:11.5px; color:var(--text-dim); margin-bottom:14px}
+  .funnel-row{display:flex; align-items:center; gap:10px; margin-bottom:8px}
+  .funnel-label{flex:0 0 118px; font-size:11.5px; color:var(--text-dim); font-weight:600}
+  .funnel-track{flex:1; height:9px; border-radius:99px; background:var(--surface-2); overflow:hidden}
+  .funnel-fill{height:100%; border-radius:99px}
+  .funnel-val{flex:0 0 28px; text-align:right; font-size:12px; font-weight:700; font-family:"IBM Plex Mono",monospace}
+  .camp-foot{display:flex; gap:14px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-dim)}
+  .camp-foot b{color:var(--text); font-family:"IBM Plex Mono",monospace}
+
+  .template-section h3{font-size:15px; margin:0 0 12px}
+  .tpl-tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap}
+  .tpl-tabs button{ border:1px solid var(--border); background:var(--surface); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:var(--text-dim); }
+  .tpl-tabs button.active{background:var(--accent-bg); border-color:var(--accent); color:var(--accent-strong)}
+  .tpl-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px}
+  .tpl-card .tpl-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; flex-wrap:wrap}
+  .tpl-card .tpl-num{font-size:11px; font-weight:700; color:var(--accent-strong); background:var(--accent-bg); padding:2px 9px; border-radius:99px}
+  .tpl-card .tpl-subject{font-weight:700; font-size:13.5px}
+  .tpl-card pre{ white-space:pre-wrap; font-family:"IBM Plex Sans",sans-serif; font-size:12.5px; color:var(--text-dim); line-height:1.6; margin:0; }
+
+  /* Estadisticas */
+  .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:16px}
+  .chart-card h3{font-size:14px; margin:0 0 14px}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .bar-row:last-child{margin-bottom:0}
+  .bar-label{flex:0 0 132px; font-size:12px; color:var(--text-dim); font-weight:600}
+  .bar-track{flex:1; height:16px; border-radius:5px; background:var(--surface-2); overflow:hidden; position:relative}
+  .bar-fill{height:100%; border-radius:5px 0 0 5px}
+  .bar-val{flex:0 0 36px; text-align:right; font-size:12.5px; font-weight:700; font-family:"IBM Plex Mono",monospace}
+  .chart-legend{display:flex; gap:14px; margin-bottom:14px; font-size:11.5px; color:var(--text-dim); flex-wrap:wrap}
+  .chart-legend span{display:inline-flex; align-items:center; gap:6px}
+  .chart-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
+
+  @media (max-width:900px){
+    .sidebar{position:fixed; left:-260px; z-index:40; transition:left .18s ease; box-shadow:0 0 0 2000px rgba(0,0,0,0)}
+    .sidebar.open{left:0; box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+    .main-content{padding:16px 16px 40px}
+    #appShell{position:relative}
+  }
   @media (max-width:640px){
     .field-row{grid-template-columns:1fr}
-    header.top{align-items:flex-start}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
+
+<div id="hubView">
+  <span class="hub-eyebrow">Klyrex · Captación</span>
+  <h1 class="hub-title">Radar Klyrex</h1>
+  <p class="hub-sub">Tu centro de mando para la captación de leads. Elige una sección para empezar.</p>
+  <div class="hub-radar-wrap">
+    <div class="radar-mark lg" aria-hidden="true"></div>
+    <div class="hub-grid" id="hubGrid"></div>
+  </div>
+</div>
+
+<div id="appShell" hidden>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand" id="sidebarBrand">
       <div class="radar-mark" aria-hidden="true"></div>
-      <div class="brand-text">
-        <span class="eyebrow">Klyrex · Captación</span>
-        <h1>Radar Klyrex</h1>
+      <div>
+        <div class="sb-sub">Klyrex</div>
+        <div class="sb-name">Radar Klyrex</div>
       </div>
     </div>
-    <div class="top-actions">
-      <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
-      <div class="tabs" id="segTabs">
-        <button data-seg="todos" class="active">Todos</button>
-        <button data-seg="automatizacion">Automatización</button>
-        <button data-seg="web">Web</button>
+    <nav id="sidebarNav"></nav>
+    <div class="sidebar-foot">Panel de captación &amp; automatización</div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top">
+      <h2 class="page-title" id="pageTitle">Pipeline</h2>
+      <div class="top-actions" id="topActions">
+        <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
+        <div class="tabs" id="segTabs">
+          <button data-seg="todos" class="active">Todos</button>
+          <button data-seg="automatizacion">Automatización</button>
+          <button data-seg="web">Web</button>
+        </div>
+        <button class="btn primary" id="btnNew">+ Nuevo lead</button>
       </div>
-      <button class="btn primary" id="btnNew">+ Nuevo lead</button>
-    </div>
-  </header>
+    </header>
 
-  <div class="tabs maintabs" id="mainTabs">
-    <button data-tab="pipeline" class="active">Pipeline</button>
-    <button data-tab="flujo">Flujo</button>
-    <button data-tab="contactos">Contactos</button>
+    <div class="stats" id="stats"></div>
+
+    <div id="viewPipeline"><div id="boardWrap"></div></div>
+    <div id="viewFlujo" hidden></div>
+    <div id="viewContactos" hidden></div>
+    <div id="viewCampanas" hidden></div>
+    <div id="viewEstadisticas" hidden></div>
   </div>
-
-  <div class="stats" id="stats"></div>
-
-  <div id="viewPipeline">
-    <div id="boardWrap"></div>
-  </div>
-
-  <div id="viewFlujo" hidden></div>
-
-  <div id="viewContactos" hidden></div>
 </div>
 
 <div class="overlay" id="overlay" hidden>
@@ -340,10 +404,19 @@
     web: {label:'Web', chip:'web'}
   };
 
+  var NAV = [
+    {key:'pipeline', label:'Pipeline', icon:'◎', color:'var(--accent)', desc:'Tablero de ventas'},
+    {key:'flujo', label:'Flujo', icon:'⇄', color:'var(--node-blue)', desc:'Automatización'},
+    {key:'contactos', label:'Contactos', icon:'☰', color:'var(--seg-web)', desc:'Listado completo'},
+    {key:'campanas', label:'Campañas', icon:'✉', color:'var(--node-orange)', desc:'Secuencias de email'},
+    {key:'estadisticas', label:'Estadísticas', icon:'▦', color:'var(--seg-auto)', desc:'Métricas del embudo'}
+  ];
+
   var leads = [];
   var currentSeg = 'todos';
   var searchQuery = '';
-  var currentMainTab = 'pipeline';
+  var currentMainTab = 'hub';
+  var currentTplSeg = 'web';
 
   var elBoard = document.getElementById('boardWrap');
   var elStats = document.getElementById('stats');
@@ -351,6 +424,12 @@
   var elModal = document.getElementById('modal');
   var elFlujo = document.getElementById('viewFlujo');
   var elContactos = document.getElementById('viewContactos');
+  var elCampanas = document.getElementById('viewCampanas');
+  var elEstadisticas = document.getElementById('viewEstadisticas');
+  var elHubView = document.getElementById('hubView');
+  var elAppShell = document.getElementById('appShell');
+  var elPageTitle = document.getElementById('pageTitle');
+  var elTopActions = document.getElementById('topActions');
 
   function esc(s){
     return String(s==null?'':s).replace(/[&<>"']/g, function(c){
@@ -408,15 +487,10 @@
   // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es público) ----
   function gh(path, options){
     options = options || {};
-    var headers = Object.assign({
-      Accept: 'application/vnd.github+json'
-    }, options.headers || {});
+    var headers = Object.assign({ Accept: 'application/vnd.github+json' }, options.headers || {});
     return fetch('https://api.github.com' + path, Object.assign({}, options, {headers: headers}))
       .then(function(res){
-        if(res.status === 204){
-          if(!res.ok) throw new Error('HTTP ' + res.status);
-          return null;
-        }
+        if(res.status === 204){ if(!res.ok) throw new Error('HTTP ' + res.status); return null; }
         return res.text().then(function(t){
           var data = t ? JSON.parse(t) : null;
           if(!res.ok) throw new Error((data && data.message) || ('HTTP ' + res.status));
@@ -434,7 +508,6 @@
       .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
       .catch(function(e){ flujoError = e.message; renderFlujo(); });
   }
-
   function statusInfo(run){
     if(run.status !== 'completed'){
       return {label: run.status==='in_progress' ? 'En curso' : 'En cola', cls:'pending'};
@@ -459,7 +532,6 @@
       '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub ↗</a>' +
     '</div>';
   }
-
   function renderFlujo(){
     var last = runs[0];
     var lastInfo = last ? statusInfo(last) : null;
@@ -475,7 +547,6 @@
       flowArrow() +
       flowStep(5, 'Supabase', 'Marca el lead como Contactado y guarda la fecha') +
     '</div>';
-
     html += '<div class="run-card">' +
       '<div class="run-head">' +
         '<div>' +
@@ -497,7 +568,6 @@
       '</div>' +
       '<div class="flujo-note">El historial se lee directamente de GitHub (repositorio público, sin claves en el código).</div>' +
     '</div>';
-
     elFlujo.innerHTML = html;
     var btnRefresh = document.getElementById('btnRefreshRuns');
     if(btnRefresh) btnRefresh.addEventListener('click', fetchRuns);
@@ -544,14 +614,16 @@
     list.forEach(function(l){
       var row = headers.map(function(h){
         var v = l[h] == null ? '' : String(l[h]);
-        if(v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('\n') !== -1){
+        if(v.indexOf(',') !== -1 || v.indexOf('"') !== -1 || v.indexOf('
+') !== -1){
           v = '"' + v.replace(/"/g, '""') + '"';
         }
         return v;
       });
       lines.push(row.join(','));
     });
-    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    var blob = new Blob([lines.join('
+')], {type:'text/csv;charset=utf-8'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
@@ -562,13 +634,197 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
+  // ---- Campañas ----
+  var PLANTILLAS = {
+    web: [
+      { asunto: '¿Te encuentran tus clientes en Google, {negocio}?',
+        cuerpo: 'Hola {contacto},
+
+Vi {negocio} en Google Maps — se nota que el negocio funciona bien. Pero no encontré una web donde la gente pueda ver horarios, servicios o reservar sin llamar.
+
+Ayudo a negocios de tu zona a tener una web sencilla y profesional en pocos días, pensada para traer más clientes, no solo para "estar en internet".
+
+¿Te va bien una llamada de 10 minutos esta semana para ver si encaja?
+
+Un saludo,
+Ignacio — Klyrex
+Si prefieres no recibir más correos, respóndeme con "baja" y no te escribo más.' },
+      { asunto: 'Re: ¿Te encuentran tus clientes en Google, {negocio}?',
+        cuerpo: 'Hola {contacto}, te escribo de nuevo por si el correo anterior se perdió.
+
+Muchos negocios como el tuyo pierden clientes simplemente porque, al buscarlos, la competencia sí aparece con web y ellos no. Es un cambio rápido y con resultado visible desde el primer mes.
+
+¿Hay algún día esta semana que te venga bien para hablar 10 minutos?
+
+Ignacio — Klyrex' },
+      { asunto: 'Último mensaje, {negocio}',
+        cuerpo: 'Hola {contacto}, no quiero ser pesado — este es el último correo que te envío por ahora.
+
+Si en algún momento te interesa tener una web para {negocio}, aquí me tienes.
+
+Un saludo,
+Ignacio — Klyrex' }
+    ],
+    automatizacion: [
+      { asunto: '¿Cuántas horas a la semana se van en tareas repetitivas en {negocio}?',
+        cuerpo: 'Hola {contacto},
+
+Trabajo con empresas ayudándolas a automatizar tareas que hoy se hacen a mano (pedidos, facturas, seguimiento de clientes...), liberando horas del equipo sin cambiar las herramientas que ya usáis.
+
+¿Tenéis 15 minutos esta semana para ver si hay algo automatizable en {negocio}? Sin compromiso.
+
+Ignacio — Klyrex
+Si no es de tu interés, respóndeme "baja" y no insisto más.' },
+      { asunto: 'Un ejemplo rápido',
+        cuerpo: 'Hola {contacto}, te doy un ejemplo concreto: una empresa similar a {negocio} redujo el tiempo de gestión de pedidos de 2 horas diarias a 15 minutos automatizando solo esa parte.
+
+¿Vemos si algo parecido aplica en vuestro caso? 15 minutos, sin compromiso.
+
+Ignacio — Klyrex' },
+      { asunto: 'Cierro el tema por ahora, {negocio}',
+        cuerpo: 'Hola {contacto}, dejo de insistir con esto — si en el futuro os interesa revisar procesos que se puedan automatizar, aquí me tenéis.
+
+Un saludo,
+Ignacio — Klyrex' }
+    ]
+  };
+
+  function funnelRowHtml(label, val, max, color){
+    var pct = max>0 ? Math.round((val/max)*100) : 0;
+    return '<div class="funnel-row">'+
+      '<span class="funnel-label">'+esc(label)+'</span>'+
+      '<div class="funnel-track"><div class="funnel-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+      '<span class="funnel-val tabular">'+val+'</span>'+
+    '</div>';
+  }
+
+  function campanaCardHtml(segKey, segLabel, color){
+    var segLeads = leads.filter(function(l){ return l.segmento===segKey; });
+    var porToque = [0,0,0,0];
+    var respondidos = 0, bajas = 0;
+    segLeads.forEach(function(l){
+      var t = Math.min(3, Math.max(0, Number(l.toque||0)));
+      var e = norm(l.estado);
+      if(e==='respondido') respondidos++;
+      else if(e==='baja') bajas++;
+      else porToque[t]++;
+    });
+    var max = Math.max.apply(null, porToque.concat([1]));
+    return '<div class="camp-card">'+
+      '<h3><span style="width:9px;height:9px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(segLabel)+'</h3>'+
+      '<div class="camp-sub">'+segLeads.length+' leads en esta campaña</div>'+
+      funnelRowHtml('Pendiente (toque 0)', porToque[0], max, color)+
+      funnelRowHtml('1er email enviado', porToque[1], max, color)+
+      funnelRowHtml('2º email enviado', porToque[2], max, color)+
+      funnelRowHtml('Secuencia completa', porToque[3], max, color)+
+      '<div class="camp-foot">'+
+        '<span>Respondidos: <b>'+respondidos+'</b></span>'+
+        '<span>Bajas: <b>'+bajas+'</b></span>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function tplCardHtml(t, idx){
+    return '<div class="tpl-card">'+
+      '<div class="tpl-head"><span class="tpl-num">TOQUE '+(idx+1)+'</span></div>'+
+      '<div class="tpl-subject">'+esc(t.asunto)+'</div>'+
+      '<pre>'+esc(t.cuerpo)+'</pre>'+
+    '</div>';
+  }
+
+  function renderCampanas(){
+    var html = '<div class="camp-grid">'+
+      campanaCardHtml('web', 'Web — pequeños negocios', 'var(--seg-web)')+
+      campanaCardHtml('automatizacion', 'Automatización — empresas', 'var(--seg-auto)')+
+    '</div>';
+    html += '<div class="template-section">'+
+      '<h3>Plantillas de la secuencia</h3>'+
+      '<div class="tpl-tabs">'+
+        '<button data-tpl="web" class="'+(currentTplSeg==='web'?'active':'')+'">Web</button>'+
+        '<button data-tpl="automatizacion" class="'+(currentTplSeg==='automatizacion'?'active':'')+'">Automatización</button>'+
+      '</div>'+
+      PLANTILLAS[currentTplSeg].map(tplCardHtml).join('')+
+    '</div>';
+    elCampanas.innerHTML = html;
+    elCampanas.querySelectorAll('.tpl-tabs button').forEach(function(b){
+      b.addEventListener('click', function(){
+        currentTplSeg = b.getAttribute('data-tpl');
+        renderCampanas();
+      });
+    });
+  }
+
+  // ---- Estadisticas ----
+  function barRowHtml(label, val, max, color){
+    var pct = max>0 ? Math.round((val/max)*100) : 0;
+    return '<div class="bar-row">'+
+      '<span class="bar-label">'+esc(label)+'</span>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+      '<span class="bar-val tabular">'+val+'</span>'+
+    '</div>';
+  }
+
+  function renderEstadisticas(){
+    var total = leads.length;
+    var ganados = leads.filter(function(l){return norm(l.estado)==='ganado';}).length;
+    var tasaConv = total>0 ? Math.round((ganados/total)*100) : 0;
+    var hace7 = new Date(Date.now() - 7*24*60*60*1000);
+    var nuevosSemana = leads.filter(function(l){ return l.created_at && new Date(l.created_at) >= hace7; }).length;
+    var scoreMedio = total>0 ? Math.round(leads.reduce(function(s,l){return s+(Number(l.score)||0);},0)/total) : 0;
+
+    var porEstado = {};
+    STATUSES.forEach(function(s){ porEstado[s.key]=0; });
+    leads.forEach(function(l){ var k=norm(l.estado); if(porEstado[k]!=null) porEstado[k]++; });
+    var maxEstado = Math.max.apply(null, STATUSES.map(function(s){return porEstado[s.key];}).concat([1]));
+
+    var auto = leads.filter(function(l){return l.segmento==='automatizacion';}).length;
+    var web = leads.filter(function(l){return l.segmento==='web';}).length;
+    var maxSeg = Math.max(auto, web, 1);
+
+    var outbound = leads.filter(function(l){return l.origen==='outbound';}).length;
+    var inbound = leads.filter(function(l){return l.origen==='inbound';}).length;
+    var maxOrigen = Math.max(outbound, inbound, 1);
+
+    var html = '<div class="stats">'+
+      '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
+      '<div class="stat ok"><span class="n tabular">'+tasaConv+'%</span><span class="l">Tasa de conversión</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+nuevosSemana+'</span><span class="l">Nuevos (7 días)</span></div>'+
+      '<div class="stat"><span class="n tabular">'+scoreMedio+'</span><span class="l">Score medio</span></div>'+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por estado del pipeline</h3>'+
+      STATUSES.map(function(s){
+        var color = s.key==='ganado' ? 'var(--ok)' : s.key==='perdido' ? 'var(--crit)' : 'var(--node-blue)';
+        var label = s.key==='ganado' ? '✓ ' + s.label : s.key==='perdido' ? '✗ ' + s.label : s.label;
+        return barRowHtml(label, porEstado[s.key], maxEstado, color);
+      }).join('')+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por segmento</h3>'+
+      '<div class="chart-legend"><span><i style="background:var(--node-blue)"></i>Automatización</span><span><i style="background:var(--node-orange)"></i>Web</span></div>'+
+      barRowHtml('Automatización', auto, maxSeg, 'var(--node-blue)')+
+      barRowHtml('Web', web, maxSeg, 'var(--node-orange)')+
+    '</div>';
+
+    html += '<div class="chart-card"><h3>Leads por origen</h3>'+
+      barRowHtml('Prospección (outbound)', outbound, maxOrigen, 'var(--node-orange)')+
+      barRowHtml('Entrante (inbound)', inbound, maxOrigen, 'var(--node-blue)')+
+    '</div>';
+
+    elEstadisticas.innerHTML = html;
+  }
+
   function render(){
     renderStats();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
+    if(currentMainTab === 'campanas') renderCampanas();
+    if(currentMainTab === 'estadisticas') renderEstadisticas();
+    renderHub();
   }
 
   function renderStats(){
+    if(currentMainTab === 'estadisticas') return;
     var total = leads.length;
     var auto = leads.filter(function(l){return l.segmento==='automatizacion';}).length;
     var web = leads.filter(function(l){return l.segmento==='web';}).length;
@@ -595,7 +851,7 @@
     if(leads.length===0){
       elBoard.innerHTML =
         '<div class="empty-state">'+
-          '<div class="radar-mark lg" aria-hidden="true"></div>'+
+          '<div class="radar-mark" aria-hidden="true" style="width:76px;height:76px"></div>'+
           '<div class="display" style="font-size:16px;font-weight:600;color:var(--text)">Todavía no hay leads</div>'+
           '<div style="font-size:13px;max-width:360px">Añade el primero a mano, o pide búsquedas de prospección para llenarlo automáticamente.</div>'+
           '<button class="btn primary" onclick="RadarKlyrex.openNew()">+ Nuevo lead</button>'+
@@ -787,6 +1043,50 @@
     deleteLead(id).then(closeModal).catch(function(e){ console.error(e); });
   }
 
+  // ---- Hub (portada) ----
+  function countForNav(key){
+    if(key==='pipeline') return leads.length + ' leads';
+    if(key==='contactos') return leads.length + ' contactos';
+    if(key==='campanas') return leads.filter(function(l){return (l.toque||0)>0;}).length + ' contactados';
+    if(key==='estadisticas') return leads.filter(function(l){return norm(l.estado)==='ganado';}).length + ' ganados';
+    if(key==='flujo') return runs.length + ' ejecuciones';
+    return '';
+  }
+
+  function renderHub(){
+    var elGrid = document.getElementById('hubGrid');
+    var n = NAV.length;
+    elGrid.innerHTML = NAV.map(function(item, i){
+      var ang = Math.round((360 / n) * i - 90);
+      return '<button class="hub-node" data-nav="'+item.key+'" style="--ang:'+ang+'deg; --node-color:'+item.color+'">'+
+        '<span class="hn-icon" style="color:'+item.color+'">'+item.icon+'</span>'+
+        '<span class="hn-label">'+esc(item.label)+'</span>'+
+        '<span class="hn-count">'+esc(countForNav(item.key))+'</span>'+
+      '</button>';
+    }).join('');
+    elGrid.querySelectorAll('.hub-node').forEach(function(btn){
+      btn.addEventListener('click', function(){ goTo(btn.getAttribute('data-nav')); });
+    });
+  }
+
+  function renderSidebarNav(){
+    var nav = document.getElementById('sidebarNav');
+    nav.innerHTML = NAV.map(function(item){
+      return '<button data-nav="'+item.key+'" class="'+(currentMainTab===item.key?'active':'')+'">'+
+        '<span class="nav-ic" style="color:'+item.color+'">'+item.icon+'</span>'+esc(item.label)+
+      '</button>';
+    }).join('');
+    nav.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){ goTo(btn.getAttribute('data-nav')); });
+    });
+  }
+
+  function goTo(key){
+    currentMainTab = key;
+    location.hash = key;
+    updateMainView();
+  }
+
   // ---- wiring ----
   document.getElementById('btnNew').addEventListener('click', openNew);
   document.getElementById('search').addEventListener('input', function(e){
@@ -802,25 +1102,41 @@
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
   });
-  document.getElementById('mainTabs').addEventListener('click', function(e){
-    var btn = e.target.closest('button[data-tab]');
-    if(!btn) return;
-    currentMainTab = btn.getAttribute('data-tab');
-    document.querySelectorAll('#mainTabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
-    updateMainView();
-  });
+  document.getElementById('sidebarBrand').addEventListener('click', function(){ goTo('hub'); });
   elOverlay.addEventListener('click', function(e){ if(e.target===elOverlay) closeModal(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !elOverlay.hidden) closeModal(); });
+  window.addEventListener('hashchange', function(){
+    var k = location.hash.replace('#','');
+    if(k && NAV.some(function(n){return n.key===k;})){ currentMainTab = k; updateMainView(); }
+    else if(!k){ currentMainTab = 'hub'; updateMainView(); }
+  });
 
   function updateMainView(){
-    document.getElementById('viewPipeline').hidden = currentMainTab !== 'pipeline';
-    elFlujo.hidden = currentMainTab !== 'flujo';
-    elContactos.hidden = currentMainTab !== 'contactos';
+    var isHub = currentMainTab === 'hub';
+    elHubView.hidden = !isHub;
+    elAppShell.hidden = isHub;
 
     if(flujoPollTimer){ clearInterval(flujoPollTimer); flujoPollTimer = null; }
 
+    if(isHub){ renderHub(); return; }
+
+    var navItem = NAV.find(function(n){return n.key===currentMainTab;}) || NAV[0];
+    elPageTitle.textContent = navItem.label;
+    elTopActions.style.display = (currentMainTab==='pipeline' || currentMainTab==='contactos') ? 'flex' : 'none';
+    elStats.style.display = currentMainTab==='estadisticas' ? 'none' : '';
+    renderSidebarNav();
+
+    document.getElementById('viewPipeline').hidden = currentMainTab !== 'pipeline';
+    elFlujo.hidden = currentMainTab !== 'flujo';
+    elContactos.hidden = currentMainTab !== 'contactos';
+    elCampanas.hidden = currentMainTab !== 'campanas';
+    elEstadisticas.hidden = currentMainTab !== 'estadisticas';
+
+    renderStats();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
+    if(currentMainTab === 'campanas') renderCampanas();
+    if(currentMainTab === 'estadisticas') renderEstadisticas();
     if(currentMainTab === 'flujo'){
       renderFlujo();
       fetchRuns();
@@ -833,7 +1149,10 @@
     saveEdit: saveEdit, remove: remove
   };
 
-  elBoard.innerHTML = '<div class="empty-state">Conectando…</div>';
+  renderHub();
+  var startKey = location.hash.replace('#','');
+  if(startKey && NAV.some(function(n){return n.key===startKey;})){ currentMainTab = startKey; }
+  updateMainView();
   fetchLeads();
   setInterval(fetchLeads, 10000);
 })();
