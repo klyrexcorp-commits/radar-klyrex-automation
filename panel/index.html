@@ -7,44 +7,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
   :root{
-    --bg:#f3f4f6; --surface:#ffffff; --surface-2:#f6f7f9; --border:#dde1e6;
-    --text:#13161c; --text-dim:#5b6472;
-    --accent:#b8781f; --accent-strong:#8f5e18; --accent-ink:#ffffff; --accent-bg:#f5e8d4;
-    --seg-auto:#0f766e; --seg-auto-bg:#d9f1ee;
-    --seg-web:#9d174d; --seg-web-bg:#fbdde9;
-    --node-blue:#2a78d6; --node-blue-bg:#dde8fb;
-    --node-orange:#eb6834; --node-orange-bg:#f8ddc9;
-    --ok:#15803d; --ok-bg:#dcf3e3;
-    --crit:#b91c3c; --crit-bg:#fbdde4;
-    --grid-dot:rgba(19,22,28,.05);
-    --shadow:0 1px 2px rgba(15,18,24,.06), 0 10px 26px -14px rgba(15,18,24,.22);
-    --sidebar-w:226px;
-    --cat-1:#2a78d6; --cat-2:#eb6834; --cat-3:#1baf7a; --cat-4:#eda100;
-    --cat-5:#e87ba4; --cat-6:#008300; --cat-7:#4a3aa7; --cat-8:#e34948;
-    color-scheme:light;
-  }
-  @media (prefers-color-scheme:dark){
-    :root:not([data-theme="light"]){
-      --bg:#0c0e12; --surface:#15181f; --surface-2:#1b1f27; --border:#272c36;
-      --text:#eef0f3; --text-dim:#99a1ad;
-      --accent:#e3a63f; --accent-strong:#f0b658; --accent-ink:#10141a; --accent-bg:rgba(227,166,63,.14);
-      --seg-auto:#4dd6c8; --seg-auto-bg:rgba(77,214,200,.13);
-      --seg-web:#f0789f; --seg-web-bg:rgba(240,120,159,.13);
-      --node-blue:#3987e5; --node-blue-bg:rgba(108,162,242,.14);
-      --node-orange:#d95926; --node-orange-bg:rgba(240,146,79,.14);
-      --ok:#5fcb86; --ok-bg:rgba(95,203,134,.13);
-      --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
-      --grid-dot:rgba(255,255,255,.045);
-      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
-      --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
-      --cat-5:#d55181; --cat-6:#008300; --cat-7:#9085e9; --cat-8:#e66767;
-      color-scheme:dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#0c0e12; --surface:#15181f; --surface-2:#1b1f27; --border:#272c36;
-    --text:#eef0f3; --text-dim:#99a1ad;
-    --accent:#e3a63f; --accent-strong:#f0b658; --accent-ink:#10141a; --accent-bg:rgba(227,166,63,.14);
+    --bg:#090b0f; --bg-2:#05060a; --surface:#12151c; --surface-2:#181c25; --border:#262b36;
+    --text:#eef1f6; --text-dim:#8c94a3;
+    --accent:#e3a63f; --accent-strong:#f6c569; --accent-ink:#0d0f13; --accent-bg:rgba(227,166,63,.14);
     --seg-auto:#4dd6c8; --seg-auto-bg:rgba(77,214,200,.13);
     --seg-web:#f0789f; --seg-web-bg:rgba(240,120,159,.13);
     --node-blue:#3987e5; --node-blue-bg:rgba(108,162,242,.14);
@@ -52,7 +17,9 @@
     --ok:#5fcb86; --ok-bg:rgba(95,203,134,.13);
     --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
     --grid-dot:rgba(255,255,255,.045);
-    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
+    --shadow:0 2px 4px rgba(0,0,0,.45), 0 24px 44px -20px rgba(0,0,0,.7);
+    --glow:rgba(227,166,63,.5);
+    --sidebar-w:226px;
     --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
     --cat-5:#d55181; --cat-6:#008300; --cat-7:#9085e9; --cat-8:#e66767;
     color-scheme:dark;
@@ -91,17 +58,44 @@
     background:var(--accent); border-radius:50%;
     box-shadow:-14px -6px 0 -1.5px var(--seg-auto), 11px 9px 0 -1.5px var(--seg-web);
   }
-  .radar-mark.lg{width:280px; height:280px}
+  .radar-mark.lg{
+    width:300px; height:300px; border-color:rgba(255,255,255,.08);
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 29%, rgba(255,255,255,.08) 30% 31%, transparent 32%),
+      radial-gradient(circle at 50% 50%, transparent 0 54%, rgba(255,255,255,.08) 55% 56%, transparent 57%),
+      radial-gradient(circle at 50% 50%, transparent 0 78%, rgba(255,255,255,.06) 79% 80%, transparent 81%),
+      radial-gradient(circle at 50% 50%, var(--surface-2) 0%, var(--bg-2) 100%);
+    box-shadow:0 0 0 1px rgba(255,255,255,.03), 0 0 80px -10px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6);
+  }
+  .radar-mark.lg::before{
+    background:conic-gradient(from 0deg, var(--accent) 0deg, rgba(227,166,63,.35) 18deg, transparent 50deg 360deg);
+    filter:drop-shadow(0 0 18px var(--glow));
+    opacity:.85;
+  }
   .radar-mark.lg::after{ width:10px; height:10px; margin:-5px;
-    box-shadow:-88px -38px 0 -3px var(--seg-auto), 70px 56px 0 -3px var(--seg-web), 10px -92px 0 -3px var(--node-blue), -40px 86px 0 -3px var(--node-orange);
+    box-shadow:0 0 10px 2px var(--glow),
+      -94px -40px 0 -3px var(--seg-auto), 74px 60px 0 -3px var(--seg-web), 10px -98px 0 -3px var(--node-blue), -42px 92px 0 -3px var(--node-orange);
   }
   @keyframes radar-sweep{ to{ transform:rotate(360deg); } }
-  @media (prefers-reduced-motion:reduce){ .radar-mark::before{ animation:none } }
+  @keyframes beacon-pulse{ 0%,100%{ box-shadow:0 0 0 1px rgba(255,255,255,.03), 0 0 80px -10px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6); } 50%{ box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 0 110px -5px var(--glow), inset 0 0 60px -20px rgba(0,0,0,.6); } }
+  .radar-mark.lg{ animation:beacon-pulse 4s ease-in-out infinite; }
+  @media (prefers-reduced-motion:reduce){ .radar-mark::before{ animation:none } .radar-mark.lg{ animation:none } }
 
   /* ---- Hub (portada) ---- */
   #hubView{
     min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:36px; padding:60px 20px 80px; text-align:center;
+    gap:36px; padding:60px 20px 80px; text-align:center; position:relative; overflow:hidden;
+    background:
+      radial-gradient(1px 1px at 8% 15%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 22% 68%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1.5px 1.5px at 35% 30%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 48% 80%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 62% 20%, rgba(255,255,255,.45), transparent),
+      radial-gradient(1px 1px at 75% 55%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 88% 35%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 93% 75%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,.25), transparent),
+      radial-gradient(ellipse at 50% 0%, rgba(227,166,63,.08), transparent 60%);
   }
   #hubView[hidden]{ display:none; }
   .hub-eyebrow{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--text-dim); font-weight:700}
@@ -112,13 +106,15 @@
     position:absolute; top:50%; left:50%; width:104px; height:104px; margin:-52px;
     transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1));
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
-    background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--node-color);
+    background:rgba(18,21,28,.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.08); border-top:3px solid var(--node-color);
     border-radius:14px; box-shadow:var(--shadow); cursor:pointer;
-    transition:transform .15s ease, box-shadow .15s ease; padding:10px;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; padding:10px;
   }
   .hub-node:hover{
-    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1)) scale(1.07);
-    box-shadow:0 1px 2px rgba(15,18,24,.08), 0 16px 30px -12px rgba(15,18,24,.3);
+    transform: rotate(var(--ang)) translate(158px) rotate(calc(var(--ang) * -1)) scale(1.08);
+    border-color:var(--node-color);
+    box-shadow:0 0 0 1px rgba(255,255,255,.04), 0 20px 40px -16px rgba(0,0,0,.7), 0 0 24px -6px var(--node-color);
   }
   .hub-node .hn-icon{font-size:20px; line-height:1}
   .hub-node .hn-label{font-size:12.5px; font-weight:700; color:var(--text)}
@@ -154,6 +150,11 @@
   .sidebar-foot{margin-top:auto; font-size:10.5px; color:var(--text-dim); padding:10px 6px 2px; border-top:1px solid var(--border)}
 
   .main-content{flex:1; min-width:0; padding:22px 28px 48px}
+  @keyframes view-slide-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .main-content.transitioning{ animation:view-slide-in .32s cubic-bezier(.16,1,.3,1); }
+  @keyframes hub-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+  #hubView.transitioning{ animation:hub-fade-in .4s ease; }
+  @media (prefers-reduced-motion:reduce){ .main-content.transitioning, #hubView.transitioning{ animation:none } }
 
   header.top{
     display:flex; flex-wrap:wrap; gap:14px 24px; align-items:center; justify-content:space-between;
@@ -368,6 +369,7 @@
       <div class="top-actions" id="topActions">
         <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
         <div class="tabs" id="segTabs"></div>
+        <button class="btn" id="btnImport">⇪ Importar de Sheets</button>
         <button class="btn primary" id="btnNew">+ Nuevo lead</button>
       </div>
     </header>
@@ -1118,6 +1120,142 @@
     deleteLead(id).then(closeModal).catch(function(e){ console.error(e); });
   }
 
+  // ---- Importar desde Google Sheets (CSV publicado) ----
+  var FIELD_DEFS = [
+    {key:'nombre', label:'Nombre / Empresa', aliases:['nombre','name','empresa','negocio','company','business']},
+    {key:'contacto', label:'Persona de contacto', aliases:['contacto','contact','persona']},
+    {key:'telefono', label:'Teléfono', aliases:['telefono','phone','tel','movil']},
+    {key:'email', label:'Email', aliases:['email','correo','mail','e-mail']},
+    {key:'ciudad', label:'Ciudad', aliases:['ciudad','city','localidad','poblacion']},
+    {key:'notas', label:'Notas', aliases:['notas','notes','comentarios','observaciones']}
+  ];
+  var importData = null;
+
+  function normKey(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+
+  function parseCSV(text){
+    var rows = []; var row = []; var field = ''; var inQuotes = false;
+    for(var i=0;i<text.length;i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; } else inQuotes = false;
+        } else field += c;
+      } else {
+        if(c === '"') inQuotes = true;
+        else if(c === ','){ row.push(field); field=''; }
+        else if(c === '\n' || c === '\r'){
+          if(c === '\r' && text[i+1] === '\n') i++;
+          row.push(field); field='';
+          rows.push(row); row=[];
+        } else field += c;
+      }
+    }
+    if(field!=='' || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return !(r.length===1 && r[0].trim()===''); });
+  }
+
+  function guessColumn(headers, aliases){
+    for(var i=0;i<headers.length;i++){
+      var h = normKey(headers[i]);
+      for(var j=0;j<aliases.length;j++){ if(h === normKey(aliases[j])) return i; }
+    }
+    return -1;
+  }
+
+  function openImportSheets(){
+    elModal.innerHTML =
+      '<h2>Importar desde Google Sheets</h2>'+
+      '<div class="field"><label>Enlace CSV publicado</label>'+
+        '<input type="text" id="imp_url" placeholder="https://docs.google.com/.../pub?output=csv"></div>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.5">En Google Sheets: Archivo → Compartir → Publicar en la web → elige la hoja y formato CSV → Publicar. Pega aquí el enlace generado.</div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" id="btnLoadCsv">Cargar</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+    document.getElementById('btnLoadCsv').addEventListener('click', loadImportCsv);
+  }
+
+  function loadImportCsv(){
+    var urlEl = document.getElementById('imp_url');
+    var url = urlEl.value.trim();
+    if(!url) return;
+    var btn = document.getElementById('btnLoadCsv');
+    btn.disabled = true; btn.textContent = 'Cargando…';
+    fetch(url).then(function(res){
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return res.text();
+    }).then(function(text){
+      var rows = parseCSV(text);
+      if(rows.length < 2){ throw new Error('El CSV no tiene filas de datos.'); }
+      importData = {headers: rows[0], rows: rows.slice(1).filter(function(r){ return r.some(function(c){return c.trim()!=='';}); })};
+      openImportMapping();
+    }).catch(function(e){
+      alert('No se pudo cargar el CSV: '+e.message+'\n\nComprueba que la hoja esté publicada en la web (no solo compartida) y que el enlace sea el de formato CSV.');
+      btn.disabled = false; btn.textContent = 'Cargar';
+    });
+  }
+
+  function openImportMapping(){
+    var headers = importData.headers;
+    var fieldSelects = FIELD_DEFS.map(function(f){
+      var guess = guessColumn(headers, f.aliases);
+      var opts = '<option value="-1">— No importar —</option>'+headers.map(function(h,i){
+        return '<option value="'+i+'"'+(i===guess?' selected':'')+'>'+esc(h)+'</option>';
+      }).join('');
+      return '<div class="field"><label>'+f.label+'</label><select data-imp-field="'+f.key+'">'+opts+'</select></div>';
+    }).join('');
+
+    elModal.innerHTML =
+      '<h2>Importar '+importData.rows.length+' leads</h2>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px">'+headers.length+' columnas detectadas. Revisa que cada campo apunte a la columna correcta.</div>'+
+      fieldSelects+
+      '<div class="field"><label>Asignar a campaña</label><select id="imp_campana">'+
+        '<option value="">Sin campaña</option>'+
+        campanas.filter(function(c){return c.activa;}).map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
+      '</select></div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" id="btnConfirmImport">Importar '+importData.rows.length+' leads</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+    document.getElementById('btnConfirmImport').addEventListener('click', confirmImport);
+  }
+
+  function confirmImport(){
+    var mapping = {};
+    document.querySelectorAll('[data-imp-field]').forEach(function(sel){
+      mapping[sel.getAttribute('data-imp-field')] = Number(sel.value);
+    });
+    var campId = document.getElementById('imp_campana').value || null;
+    var btn = document.getElementById('btnConfirmImport');
+    btn.disabled = true; btn.textContent = 'Importando…';
+
+    var leadsToImport = importData.rows.map(function(row){
+      var lead = {estado:'nuevo', toque:0, origen:'outbound', campana_id: campId};
+      FIELD_DEFS.forEach(function(f){
+        var idx = mapping[f.key];
+        lead[f.key] = idx>=0 && row[idx]!=null ? row[idx].trim() : '';
+      });
+      if(!lead.nombre) lead.nombre = 'Sin nombre';
+      return lead;
+    }).filter(function(l){ return l.nombre !== 'Sin nombre' || l.email || l.telefono; });
+
+    if(leadsToImport.length===0){ alert('No hay filas válidas para importar.'); btn.disabled=false; btn.textContent='Importar'; return; }
+
+    sb('leads', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(leadsToImport)})
+      .then(function(){
+        importData = null;
+        closeModal();
+        fetchLeads();
+      })
+      .catch(function(e){
+        alert('Error al importar: '+e.message);
+        btn.disabled = false; btn.textContent = 'Importar '+importData.rows.length+' leads';
+      });
+  }
+
   // ---- Hub (portada) ----
   function countForNav(key){
     if(key==='pipeline') return leads.length + ' leads';
@@ -1164,6 +1302,7 @@
 
   // ---- wiring ----
   document.getElementById('btnNew').addEventListener('click', openNew);
+  document.getElementById('btnImport').addEventListener('click', openImportSheets);
   document.getElementById('search').addEventListener('input', function(e){
     searchQuery = e.target.value;
     if(currentMainTab === 'pipeline') renderBoard();
@@ -1186,6 +1325,13 @@
     else if(!k){ currentMainTab = 'hub'; updateMainView(); }
   });
 
+  function playTransition(el){
+    if(!el) return;
+    el.classList.remove('transitioning');
+    void el.offsetWidth;
+    el.classList.add('transitioning');
+  }
+
   function updateMainView(){
     var isHub = currentMainTab === 'hub';
     elHubView.hidden = !isHub;
@@ -1193,8 +1339,9 @@
 
     if(flujoPollTimer){ clearInterval(flujoPollTimer); flujoPollTimer = null; }
 
-    if(isHub){ renderHub(); return; }
+    if(isHub){ renderHub(); playTransition(elHubView); return; }
 
+    playTransition(document.querySelector('.main-content'));
     var navItem = NAV.find(function(n){return n.key===currentMainTab;}) || NAV[0];
     elPageTitle.textContent = navItem.label;
     elTopActions.style.display = (currentMainTab==='pipeline' || currentMainTab==='contactos') ? 'flex' : 'none';
