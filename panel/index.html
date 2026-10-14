@@ -19,6 +19,8 @@
     --grid-dot:rgba(19,22,28,.05);
     --shadow:0 1px 2px rgba(15,18,24,.06), 0 10px 26px -14px rgba(15,18,24,.22);
     --sidebar-w:226px;
+    --cat-1:#2a78d6; --cat-2:#eb6834; --cat-3:#1baf7a; --cat-4:#eda100;
+    --cat-5:#e87ba4; --cat-6:#008300; --cat-7:#4a3aa7; --cat-8:#e34948;
     color-scheme:light;
   }
   @media (prefers-color-scheme:dark){
@@ -34,6 +36,8 @@
       --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
       --grid-dot:rgba(255,255,255,.045);
       --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
+      --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
+      --cat-5:#d55181; --cat-6:#008300; --cat-7:#9085e9; --cat-8:#e66767;
       color-scheme:dark;
     }
   }
@@ -49,6 +53,8 @@
     --crit:#f0728d; --crit-bg:rgba(240,114,141,.13);
     --grid-dot:rgba(255,255,255,.045);
     --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 26px -14px rgba(0,0,0,.55);
+    --cat-1:#3987e5; --cat-2:#d95926; --cat-3:#199e70; --cat-4:#c98500;
+    --cat-5:#d55181; --cat-6:#008300; --cat-7:#9085e9; --cat-8:#e66767;
     color-scheme:dark;
   }
 
@@ -217,8 +223,6 @@
     display:flex; flex-direction:column; gap:7px; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
   .card:hover{border-color:var(--text-dim); transform:translateY(-1px)}
-  .card[data-segment="automatizacion"]{border-left-color:var(--seg-auto)}
-  .card[data-segment="web"]{border-left-color:var(--seg-web)}
   .card-top{display:flex; justify-content:space-between; gap:8px; align-items:center}
   .card-name{font-weight:600; font-size:13.5px; line-height:1.25}
   .score-ring{ width:32px; height:32px; flex:none; border-radius:50%; background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0); display:flex; align-items:center; justify-content:center; }
@@ -243,12 +247,6 @@
   textarea{resize:vertical; min-height:60px}
   .modal-actions{display:flex; justify-content:space-between; gap:10px; margin-top:4px; align-items:center}
   .modal-actions .right{display:flex; gap:8px}
-  .segpick{display:flex; gap:8px}
-  .segpick label{ flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:12.5px; font-weight:600; text-align:center; cursor:pointer; color:var(--text-dim); }
-  .segpick input{display:none}
-  .segpick label:has(input:checked){border-color:currentColor}
-  .segpick label.auto:has(input:checked){color:var(--seg-auto); background:var(--seg-auto-bg)}
-  .segpick label.web:has(input:checked){color:var(--seg-web); background:var(--seg-web-bg)}
 
   /* Flujo */
   .flow{display:flex; align-items:stretch; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:20px}
@@ -281,28 +279,39 @@
   table.contactos tbody tr:hover{background:var(--surface-2)}
 
   /* Campañas */
-  .camp-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px}
-  @media (max-width:800px){ .camp-grid{grid-template-columns:1fr} }
-  .camp-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px}
-  .camp-card h3{margin:0 0 2px; font-size:15px; display:flex; align-items:center; gap:8px}
-  .camp-card .camp-sub{font-size:11.5px; color:var(--text-dim); margin-bottom:14px}
+  .camp-toolbar{display:flex; justify-content:flex-end; margin-bottom:16px}
+  .camp-list{display:flex; flex-direction:column; gap:16px}
+  .camp-card{background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--camp-color, var(--border)); border-radius:12px; padding:18px}
+  .camp-card.paused{opacity:.6}
+  .camp-card-head{display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap}
+  .camp-dot{width:10px; height:10px; border-radius:50%; background:var(--camp-color); flex:none}
+  .camp-name-input{ border:none; background:transparent; font-family:"Sora",sans-serif; font-weight:700; font-size:16px; color:var(--text); padding:2px 4px; border-radius:6px; flex:1; min-width:120px; }
+  .camp-name-input:hover, .camp-name-input:focus{background:var(--surface-2)}
+  .camp-card-actions{display:flex; gap:6px; align-items:center}
+  .camp-sub{font-size:11.5px; color:var(--text-dim); margin:2px 0 14px}
+  .switch{ position:relative; width:36px; height:20px; flex:none; border-radius:99px; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; }
+  .switch.on{background:var(--ok); border-color:var(--ok)}
+  .switch::after{ content:''; position:absolute; top:1px; left:1px; width:16px; height:16px; border-radius:50%; background:var(--surface); transition:left .15s ease; box-shadow:var(--shadow); }
+  .switch.on::after{left:17px}
+
   .funnel-row{display:flex; align-items:center; gap:10px; margin-bottom:8px}
   .funnel-label{flex:0 0 118px; font-size:11.5px; color:var(--text-dim); font-weight:600}
   .funnel-track{flex:1; height:9px; border-radius:99px; background:var(--surface-2); overflow:hidden}
   .funnel-fill{height:100%; border-radius:99px}
   .funnel-val{flex:0 0 28px; text-align:right; font-size:12px; font-weight:700; font-family:"IBM Plex Mono",monospace}
-  .camp-foot{display:flex; gap:14px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-dim)}
+  .camp-foot{display:flex; gap:14px; margin:14px 0; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-size:11.5px; color:var(--text-dim)}
   .camp-foot b{color:var(--text); font-family:"IBM Plex Mono",monospace}
 
-  .template-section h3{font-size:15px; margin:0 0 12px}
-  .tpl-tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap}
-  .tpl-tabs button{ border:1px solid var(--border); background:var(--surface); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; cursor:pointer; color:var(--text-dim); }
-  .tpl-tabs button.active{background:var(--accent-bg); border-color:var(--accent); color:var(--accent-strong)}
-  .tpl-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:12px}
-  .tpl-card .tpl-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px; flex-wrap:wrap}
-  .tpl-card .tpl-num{font-size:11px; font-weight:700; color:var(--accent-strong); background:var(--accent-bg); padding:2px 9px; border-radius:99px}
-  .tpl-card .tpl-subject{font-weight:700; font-size:13.5px}
-  .tpl-card pre{ white-space:pre-wrap; font-family:"IBM Plex Sans",sans-serif; font-size:12.5px; color:var(--text-dim); line-height:1.6; margin:0; }
+  .toque-list{display:flex; flex-direction:column; gap:10px}
+  .toque-card{background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px}
+  .toque-head{display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap}
+  .toque-num{font-size:11px; font-weight:700; color:var(--accent-strong); background:var(--accent-bg); padding:2px 9px; border-radius:99px; flex:none}
+  .toque-wait{display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-dim)}
+  .toque-wait input{width:48px; padding:4px 6px; font-size:12px; text-align:center}
+  .toque-head .right{margin-left:auto}
+  .toque-card input.toque-subject{width:100%; font-weight:600; font-size:13px; margin-bottom:6px}
+  .toque-card textarea.toque-body{width:100%; font-size:12.5px; line-height:1.6; min-height:110px}
+  .camp-add-toque{margin-top:10px}
 
   /* Estadisticas */
   .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:16px}
@@ -358,11 +367,7 @@
       <h2 class="page-title" id="pageTitle">Pipeline</h2>
       <div class="top-actions" id="topActions">
         <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
-        <div class="tabs" id="segTabs">
-          <button data-seg="todos" class="active">Todos</button>
-          <button data-seg="automatizacion">Automatización</button>
-          <button data-seg="web">Web</button>
-        </div>
+        <div class="tabs" id="segTabs"></div>
         <button class="btn primary" id="btnNew">+ Nuevo lead</button>
       </div>
     </header>
@@ -399,11 +404,6 @@
     {key:'ganado', label:'Ganado'},
     {key:'perdido', label:'Perdido'}
   ];
-  var SEGMENTS = {
-    automatizacion: {label:'Automatización', chip:'auto'},
-    web: {label:'Web', chip:'web'}
-  };
-
   var NAV = [
     {key:'pipeline', label:'Pipeline', icon:'◎', color:'var(--accent)', desc:'Tablero de ventas'},
     {key:'flujo', label:'Flujo', icon:'⇄', color:'var(--node-blue)', desc:'Automatización'},
@@ -413,10 +413,23 @@
   ];
 
   var leads = [];
+  var campanas = [];
   var currentSeg = 'todos';
   var searchQuery = '';
   var currentMainTab = 'hub';
-  var currentTplSeg = 'web';
+
+  function campanaById(id){ return campanas.find(function(c){return c.id===id;}); }
+  function campaignColor(campana){
+    var idx = campanas.findIndex(function(c){return c.id===campana.id;});
+    return 'var(--cat-'+((idx>=0?idx:0)%8 + 1)+')';
+  }
+  function campaignLabel(campana){ return campana ? campana.nombre : 'Sin campaña'; }
+  function campChipHtml(campId){
+    var c = campanaById(campId);
+    if(!c) return '<span class="chip" style="background:var(--surface-2);color:var(--text-dim)">Sin campaña</span>';
+    var color = campaignColor(c);
+    return '<span class="chip" style="background:color-mix(in srgb, '+color+' 18%, transparent);color:'+color+'">'+esc(c.nombre)+'</span>';
+  }
 
   var elBoard = document.getElementById('boardWrap');
   var elStats = document.getElementById('stats');
@@ -482,6 +495,45 @@
   }
   function deleteLead(id){
     return sb('leads?id=eq.'+id, {method:'DELETE'}).then(fetchLeads);
+  }
+
+  // ---- Campañas (Supabase) ----
+  function fetchCampanas(){
+    return sb('campanas?select=*,campana_toques(*)&order=created_at.asc').then(function(rows){
+      campanas = rows || [];
+      campanas.forEach(function(c){
+        c.campana_toques.sort(function(a,b){return a.orden-b.orden;});
+      });
+      if(currentMainTab==='campanas') renderCampanas();
+      renderSegTabs();
+      if(currentMainTab==='pipeline') renderBoard();
+      if(currentMainTab==='contactos') renderContactos();
+      renderHub();
+    }).catch(function(e){ console.error('Error cargando campañas', e); });
+  }
+  function createCampana(data){
+    return sb('campanas', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=representation'}, body: JSON.stringify(data)})
+      .then(function(res){ return res && res[0]; })
+      .then(function(nueva){ return fetchCampanas().then(function(){ return nueva; }); });
+  }
+  function updateCampana(id, patch){
+    patch.updated_at = new Date().toISOString();
+    return sb('campanas?id=eq.'+id, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchCampanas);
+  }
+  function deleteCampana(id){
+    return sb('campanas?id=eq.'+id, {method:'DELETE'}).then(fetchCampanas);
+  }
+  function createToque(data){
+    return sb('campana_toques', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(data)})
+      .then(fetchCampanas);
+  }
+  function updateToque(id, patch){
+    return sb('campana_toques?id=eq.'+id, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchCampanas);
+  }
+  function deleteToque(id){
+    return sb('campana_toques?id=eq.'+id, {method:'DELETE'}).then(fetchCampanas);
   }
 
   // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es público) ----
@@ -580,10 +632,9 @@
       return;
     }
     var rows = list.map(function(l){
-      var seg = SEGMENTS[l.segmento] || {label:l.segmento, chip:'auto'};
       return '<tr data-id="'+l.id+'">' +
         '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
-        '<td><span class="chip '+seg.chip+'">'+esc(seg.label)+'</span></td>' +
+        '<td>'+campChipHtml(l.campana_id)+'</td>' +
         '<td>'+esc(l.contacto)+'</td>' +
         '<td>'+esc(l.telefono)+'</td>' +
         '<td>'+esc(l.email)+'</td>' +
@@ -598,7 +649,7 @@
         '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
       '</div>'+
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th>Nombre</th><th>Segmento</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Estado</th><th>Toque</th><th>Score</th>'+
+        '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Estado</th><th>Toque</th><th>Score</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
     elContactos.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
       tr.addEventListener('click', function(){ openDetail(tr.getAttribute('data-id')); });
@@ -609,7 +660,7 @@
 
   function exportCsv(){
     var list = filtered();
-    var headers = ['nombre','segmento','contacto','telefono','email','ciudad','estado','toque','score','origen','notas'];
+    var headers = ['nombre','campana_id','contacto','telefono','email','ciudad','estado','toque','score','origen','notas'];
     var lines = [headers.join(',')];
     list.forEach(function(l){
       var row = headers.map(function(h){
@@ -632,26 +683,7 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
-  // ---- Campañas ----
-  var PLANTILLAS = {
-    web: [
-      { asunto: '¿Te encuentran tus clientes en Google, {negocio}?',
-        cuerpo: 'Hola {contacto},\n\nVi {negocio} en Google Maps — se nota que el negocio funciona bien. Pero no encontré una web donde la gente pueda ver horarios, servicios o reservar sin llamar.\n\nAyudo a negocios de tu zona a tener una web sencilla y profesional en pocos días, pensada para traer más clientes, no solo para "estar en internet".\n\n¿Te va bien una llamada de 10 minutos esta semana para ver si encaja?\n\nUn saludo,\nIgnacio — Klyrex\nSi prefieres no recibir más correos, respóndeme con "baja" y no te escribo más.' },
-      { asunto: 'Re: ¿Te encuentran tus clientes en Google, {negocio}?',
-        cuerpo: 'Hola {contacto}, te escribo de nuevo por si el correo anterior se perdió.\n\nMuchos negocios como el tuyo pierden clientes simplemente porque, al buscarlos, la competencia sí aparece con web y ellos no. Es un cambio rápido y con resultado visible desde el primer mes.\n\n¿Hay algún día esta semana que te venga bien para hablar 10 minutos?\n\nIgnacio — Klyrex' },
-      { asunto: 'Último mensaje, {negocio}',
-        cuerpo: 'Hola {contacto}, no quiero ser pesado — este es el último correo que te envío por ahora.\n\nSi en algún momento te interesa tener una web para {negocio}, aquí me tienes.\n\nUn saludo,\nIgnacio — Klyrex' }
-    ],
-    automatizacion: [
-      { asunto: '¿Cuántas horas a la semana se van en tareas repetitivas en {negocio}?',
-        cuerpo: 'Hola {contacto},\n\nTrabajo con empresas ayudándolas a automatizar tareas que hoy se hacen a mano (pedidos, facturas, seguimiento de clientes...), liberando horas del equipo sin cambiar las herramientas que ya usáis.\n\n¿Tenéis 15 minutos esta semana para ver si hay algo automatizable en {negocio}? Sin compromiso.\n\nIgnacio — Klyrex\nSi no es de tu interés, respóndeme "baja" y no insisto más.' },
-      { asunto: 'Un ejemplo rápido',
-        cuerpo: 'Hola {contacto}, te doy un ejemplo concreto: una empresa similar a {negocio} redujo el tiempo de gestión de pedidos de 2 horas diarias a 15 minutos automatizando solo esa parte.\n\n¿Vemos si algo parecido aplica en vuestro caso? 15 minutos, sin compromiso.\n\nIgnacio — Klyrex' },
-      { asunto: 'Cierro el tema por ahora, {negocio}',
-        cuerpo: 'Hola {contacto}, dejo de insistir con esto — si en el futuro os interesa revisar procesos que se puedan automatizar, aquí me tenéis.\n\nUn saludo,\nIgnacio — Klyrex' }
-    ]
-  };
-
+  // ---- Campañas (CRUD completo) ----
   function funnelRowHtml(label, val, max, color){
     var pct = max>0 ? Math.round((val/max)*100) : 0;
     return '<div class="funnel-row">'+
@@ -661,61 +693,121 @@
     '</div>';
   }
 
-  function campanaCardHtml(segKey, segLabel, color){
-    var segLeads = leads.filter(function(l){ return l.segmento===segKey; });
-    var porToque = [0,0,0,0];
-    var respondidos = 0, bajas = 0;
-    segLeads.forEach(function(l){
-      var t = Math.min(3, Math.max(0, Number(l.toque||0)));
-      var e = norm(l.estado);
-      if(e==='respondido') respondidos++;
-      else if(e==='baja') bajas++;
-      else porToque[t]++;
-    });
-    var max = Math.max.apply(null, porToque.concat([1]));
-    return '<div class="camp-card">'+
-      '<h3><span style="width:9px;height:9px;border-radius:50%;background:'+color+';display:inline-block"></span> '+esc(segLabel)+'</h3>'+
-      '<div class="camp-sub">'+segLeads.length+' leads en esta campaña</div>'+
-      funnelRowHtml('Pendiente (toque 0)', porToque[0], max, color)+
-      funnelRowHtml('1er email enviado', porToque[1], max, color)+
-      funnelRowHtml('2º email enviado', porToque[2], max, color)+
-      funnelRowHtml('Secuencia completa', porToque[3], max, color)+
-      '<div class="camp-foot">'+
-        '<span>Respondidos: <b>'+respondidos+'</b></span>'+
-        '<span>Bajas: <b>'+bajas+'</b></span>'+
+  function toqueCardHtml(t, idx){
+    return '<div class="toque-card" data-toque-id="'+t.id+'">'+
+      '<div class="toque-head">'+
+        '<span class="toque-num">TOQUE '+(idx+1)+'</span>'+
+        '<label class="toque-wait">Esperar <input type="number" min="0" class="toque-wait-input" data-toque-wait="'+t.id+'" value="'+t.espera_dias+'"> días</label>'+
+        '<button class="btn sm danger right" data-toque-delete="'+t.id+'" title="Eliminar toque">✕</button>'+
       '</div>'+
+      '<input class="toque-subject" data-toque-subject="'+t.id+'" value="'+esc(t.asunto)+'" placeholder="Asunto del email">'+
+      '<textarea class="toque-body" data-toque-body="'+t.id+'" placeholder="Cuerpo del email. Variables: {negocio} {contacto} {ciudad}">'+esc(t.cuerpo)+'</textarea>'+
     '</div>';
   }
 
-  function tplCardHtml(t, idx){
-    return '<div class="tpl-card">'+
-      '<div class="tpl-head"><span class="tpl-num">TOQUE '+(idx+1)+'</span></div>'+
-      '<div class="tpl-subject">'+esc(t.asunto)+'</div>'+
-      '<pre>'+esc(t.cuerpo)+'</pre>'+
+  function campanaCardHtml(campana){
+    var color = campaignColor(campana);
+    var toques = campana.campana_toques;
+    var campLeads = leads.filter(function(l){ return l.campana_id===campana.id; });
+    var porToque = [];
+    for(var i=0;i<=toques.length;i++) porToque[i]=0;
+    var respondidos=0, bajas=0;
+    campLeads.forEach(function(l){
+      var e = norm(l.estado);
+      if(e==='respondido'){ respondidos++; return; }
+      if(e==='baja'){ bajas++; return; }
+      var t = Math.min(toques.length, Math.max(0, Number(l.toque||0)));
+      porToque[t]++;
+    });
+    var max = Math.max.apply(null, porToque.concat([1]));
+    var funnelHtml = toques.map(function(t,i){
+      return funnelRowHtml(i===0 ? 'Pendiente' : 'Tras toque '+i, porToque[i], max, color);
+    }).join('') + funnelRowHtml('Secuencia completa', porToque[toques.length], max, color);
+
+    return '<div class="camp-card'+(campana.activa?'':' paused')+'" style="--camp-color:'+color+'" data-camp-id="'+campana.id+'">'+
+      '<div class="camp-card-head">'+
+        '<span class="camp-dot" style="background:'+color+'"></span>'+
+        '<input class="camp-name-input" data-camp-name="'+campana.id+'" value="'+esc(campana.nombre)+'">'+
+        '<div class="camp-card-actions">'+
+          '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
+          '<button class="btn sm danger" data-camp-delete="'+campana.id+'" title="Eliminar campaña">✕</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="camp-sub">'+campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      funnelHtml+
+      '<div class="camp-foot"><span>Respondidos: <b>'+respondidos+'</b></span><span>Bajas: <b>'+bajas+'</b></span></div>'+
+      '<div class="toque-list">'+toques.map(toqueCardHtml).join('')+'</div>'+
+      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ Añadir toque</button>'+
     '</div>';
   }
 
   function renderCampanas(){
-    var html = '<div class="camp-grid">'+
-      campanaCardHtml('web', 'Web — pequeños negocios', 'var(--seg-web)')+
-      campanaCardHtml('automatizacion', 'Automatización — empresas', 'var(--seg-auto)')+
-    '</div>';
-    html += '<div class="template-section">'+
-      '<h3>Plantillas de la secuencia</h3>'+
-      '<div class="tpl-tabs">'+
-        '<button data-tpl="web" class="'+(currentTplSeg==='web'?'active':'')+'">Web</button>'+
-        '<button data-tpl="automatizacion" class="'+(currentTplSeg==='automatizacion'?'active':'')+'">Automatización</button>'+
-      '</div>'+
-      PLANTILLAS[currentTplSeg].map(tplCardHtml).join('')+
-    '</div>';
+    var html = '<div class="camp-toolbar"><button class="btn primary" id="btnNewCampana">+ Nueva campaña</button></div>';
+    if(campanas.length===0){
+      html += '<div class="empty-state"><div style="font-weight:600;color:var(--text)">Todavía no hay campañas</div><div style="font-size:13px">Crea la primera para definir su secuencia de emails.</div></div>';
+    } else {
+      html += '<div class="camp-list">'+campanas.map(campanaCardHtml).join('')+'</div>';
+    }
     elCampanas.innerHTML = html;
-    elCampanas.querySelectorAll('.tpl-tabs button').forEach(function(b){
-      b.addEventListener('click', function(){
-        currentTplSeg = b.getAttribute('data-tpl');
-        renderCampanas();
-      });
+    var btnNew = document.getElementById('btnNewCampana');
+    if(btnNew) btnNew.addEventListener('click', openNewCampana);
+  }
+
+  function openNewCampana(){
+    elModal.innerHTML =
+      '<h2>Nueva campaña</h2>'+
+      '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios — oferta verano"></div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
+        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNewCampana()">Crear campaña</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
+  }
+  function saveNewCampana(){
+    var input = document.getElementById('nc_nombre');
+    var nombre = input.value.trim();
+    if(!nombre) return;
+    closeModal();
+    createCampana({nombre: nombre, segmento: 'general', activa: true}).then(function(nueva){
+      if(nueva) createToque({campana_id: nueva.id, orden:0, espera_dias:0, asunto:'Asunto del primer email', cuerpo:'Hola {contacto},\n\n'});
     });
   }
+
+  elCampanas.addEventListener('click', function(e){
+    var toggle = e.target.closest('[data-camp-toggle]');
+    if(toggle){
+      var camp = campanaById(toggle.getAttribute('data-camp-toggle'));
+      if(camp) updateCampana(camp.id, {activa: !camp.activa});
+      return;
+    }
+    var delCamp = e.target.closest('[data-camp-delete]');
+    if(delCamp){
+      if(confirm('¿Eliminar esta campaña y todos sus toques? Los leads asignados se quedarán sin campaña.')){
+        deleteCampana(delCamp.getAttribute('data-camp-delete'));
+      }
+      return;
+    }
+    var addToque = e.target.closest('[data-camp-add-toque]');
+    if(addToque){
+      var campId = addToque.getAttribute('data-camp-add-toque');
+      var camp = campanaById(campId);
+      var orden = camp ? camp.campana_toques.length : 0;
+      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},\n\n'});
+      return;
+    }
+    var delToque = e.target.closest('[data-toque-delete]');
+    if(delToque){
+      if(confirm('¿Eliminar este toque de la secuencia?')) deleteToque(delToque.getAttribute('data-toque-delete'));
+      return;
+    }
+  });
+  elCampanas.addEventListener('change', function(e){
+    var t = e.target;
+    if(t.matches('[data-camp-name]')){ updateCampana(t.getAttribute('data-camp-name'), {nombre: t.value.trim()||'Sin nombre'}); return; }
+    if(t.matches('[data-toque-wait]')){ updateToque(t.getAttribute('data-toque-wait'), {espera_dias: Math.max(0, Number(t.value)||0)}); return; }
+    if(t.matches('[data-toque-subject]')){ updateToque(t.getAttribute('data-toque-subject'), {asunto: t.value}); return; }
+    if(t.matches('[data-toque-body]')){ updateToque(t.getAttribute('data-toque-body'), {cuerpo: t.value}); return; }
+  });
 
   // ---- Estadisticas ----
   function barRowHtml(label, val, max, color){
@@ -740,9 +832,10 @@
     leads.forEach(function(l){ var k=norm(l.estado); if(porEstado[k]!=null) porEstado[k]++; });
     var maxEstado = Math.max.apply(null, STATUSES.map(function(s){return porEstado[s.key];}).concat([1]));
 
-    var auto = leads.filter(function(l){return l.segmento==='automatizacion';}).length;
-    var web = leads.filter(function(l){return l.segmento==='web';}).length;
-    var maxSeg = Math.max(auto, web, 1);
+    var porCampana = campanas.map(function(c){
+      return {campana:c, count: leads.filter(function(l){return l.campana_id===c.id;}).length};
+    });
+    var maxCamp = Math.max.apply(null, porCampana.map(function(x){return x.count;}).concat([1]));
 
     var outbound = leads.filter(function(l){return l.origen==='outbound';}).length;
     var inbound = leads.filter(function(l){return l.origen==='inbound';}).length;
@@ -763,10 +856,10 @@
       }).join('')+
     '</div>';
 
-    html += '<div class="chart-card"><h3>Leads por segmento</h3>'+
-      '<div class="chart-legend"><span><i style="background:var(--node-blue)"></i>Automatización</span><span><i style="background:var(--node-orange)"></i>Web</span></div>'+
-      barRowHtml('Automatización', auto, maxSeg, 'var(--node-blue)')+
-      barRowHtml('Web', web, maxSeg, 'var(--node-orange)')+
+    html += '<div class="chart-card"><h3>Leads por campaña</h3>'+
+      (porCampana.length===0 ? '<div style="font-size:12.5px;color:var(--text-dim)">Todavía no hay campañas.</div>' :
+        porCampana.map(function(x){ return barRowHtml(x.campana.nombre, x.count, maxCamp, campaignColor(x.campana)); }).join('')
+      )+
     '</div>';
 
     html += '<div class="chart-card"><h3>Leads por origen</h3>'+
@@ -779,6 +872,7 @@
 
   function render(){
     renderStats();
+    renderSegTabs();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
@@ -789,20 +883,30 @@
   function renderStats(){
     if(currentMainTab === 'estadisticas') return;
     var total = leads.length;
-    var auto = leads.filter(function(l){return l.segmento==='automatizacion';}).length;
-    var web = leads.filter(function(l){return l.segmento==='web';}).length;
+    var sinCampana = leads.filter(function(l){return !l.campana_id;}).length;
+    var activas = campanas.filter(function(c){return c.activa;}).length;
     var ganados = leads.filter(function(l){return norm(l.estado)==='ganado';}).length;
     elStats.innerHTML =
       '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
-      '<div class="stat auto"><span class="n tabular">'+auto+'</span><span class="l">Automatización</span></div>'+
-      '<div class="stat web"><span class="n tabular">'+web+'</span><span class="l">Web</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+activas+'</span><span class="l">Campañas activas</span></div>'+
+      '<div class="stat"><span class="n tabular">'+sinCampana+'</span><span class="l">Sin campaña</span></div>'+
       '<div class="stat ok"><span class="n tabular">'+ganados+'</span><span class="l">Ganados</span></div>';
+  }
+
+  function renderSegTabs(){
+    var el = document.getElementById('segTabs');
+    if(!el) return;
+    var html = '<button data-seg="todos" class="'+(currentSeg==='todos'?'active':'')+'">Todos</button>';
+    html += campanas.map(function(c){
+      return '<button data-seg="'+c.id+'" class="'+(String(currentSeg)===String(c.id)?'active':'')+'">'+esc(c.nombre)+'</button>';
+    }).join('');
+    el.innerHTML = html;
   }
 
   function filtered(){
     var q = searchQuery.trim().toLowerCase();
     return leads.filter(function(l){
-      if(currentSeg!=='todos' && l.segmento!==currentSeg) return false;
+      if(currentSeg!=='todos' && String(l.campana_id)!==String(currentSeg)) return false;
       if(!q) return true;
       var hay = [l.nombre,l.contacto,l.email,l.telefono,l.ciudad].join(' ').toLowerCase();
       return hay.indexOf(q) !== -1;
@@ -852,19 +956,20 @@
   }
 
   function cardHtml(l){
-    var seg = SEGMENTS[l.segmento] || {label:l.segmento, chip:'auto'};
+    var camp = campanaById(l.campana_id);
+    var borderColor = camp ? campaignColor(camp) : 'var(--border)';
     var optHtml = STATUSES.map(function(s){
       return '<option value="'+s.key+'"'+(s.key===norm(l.estado)?' selected':'')+'>'+s.label+'</option>';
     }).join('');
     var toqueChip = (l.toque!=null && l.toque>0) ? '<span class="chip toque">Toque '+l.toque+'</span>' : '';
     return (
-      '<div class="card" draggable="true" data-id="'+l.id+'" data-segment="'+esc(l.segmento)+'">'+
+      '<div class="card" draggable="true" data-id="'+l.id+'" style="border-left-color:'+borderColor+'">'+
         '<div class="card-top">'+
           '<div class="card-name">'+esc(l.nombre)+'</div>'+
           scoreRingHtml(l.score)+
         '</div>'+
         '<div class="chips">'+
-          '<span class="chip '+seg.chip+'">'+esc(seg.label)+'</span>'+
+          campChipHtml(l.campana_id)+
           toqueChip+
         '</div>'+
         '<div class="card-meta">'+
@@ -915,11 +1020,13 @@
     return (
       '<div class="field"><label>Nombre empresa / negocio</label>'+
         '<input type="text" id="f_name" value="'+esc(l.nombre)+'" placeholder="Ej. Panadería San Juan"></div>'+
-      '<div class="field"><label>Segmento</label>'+
-        '<div class="segpick">'+
-          '<label class="auto"><input type="radio" name="f_seg" value="automatizacion"'+(l.segmento==='automatizacion'||!l.segmento?' checked':'')+'><span>Automatización</span></label>'+
-          '<label class="web"><input type="radio" name="f_seg" value="web"'+(l.segmento==='web'?' checked':'')+'><span>Web</span></label>'+
-        '</div></div>'+
+      '<div class="field"><label>Campaña</label>'+
+        '<select id="f_campana">'+
+          '<option value="">Sin campaña</option>'+
+          campanas.filter(function(c){return c.activa;}).map(function(c){
+            return '<option value="'+c.id+'"'+(l.campana_id===c.id?' selected':'')+'>'+esc(c.nombre)+'</option>';
+          }).join('')+
+        '</select></div>'+
       '<div class="field-row">'+
         '<div class="field"><label>Persona de contacto</label><input type="text" id="f_contact" value="'+esc(l.contacto)+'"></div>'+
         '<div class="field"><label>Ciudad</label><input type="text" id="f_city" value="'+esc(l.ciudad)+'"></div>'+
@@ -974,10 +1081,10 @@
   function closeModal(){ elOverlay.hidden = true; }
 
   function readForm(){
-    var segEl = document.querySelector('input[name="f_seg"]:checked');
+    var campEl = document.getElementById('f_campana');
     return {
       nombre: document.getElementById('f_name').value.trim() || 'Sin nombre',
-      segmento: segEl ? segEl.value : 'automatizacion',
+      campana_id: campEl && campEl.value ? campEl.value : null,
       contacto: document.getElementById('f_contact').value.trim(),
       ciudad: document.getElementById('f_city').value.trim(),
       telefono: document.getElementById('f_phone').value.trim(),
@@ -999,6 +1106,11 @@
     var data = readForm();
     var statusEl = document.getElementById('f_status');
     if(statusEl) data.estado = statusEl.value;
+    var prev = leads.find(function(x){return String(x.id)===String(id);});
+    if(prev && prev.campana_id !== data.campana_id){
+      data.toque = 0;
+      data.fecha_ultimo_envio = null;
+    }
     updateLead(id, data).then(closeModal).catch(function(e){ console.error(e); });
   }
 
@@ -1010,7 +1122,7 @@
   function countForNav(key){
     if(key==='pipeline') return leads.length + ' leads';
     if(key==='contactos') return leads.length + ' contactos';
-    if(key==='campanas') return leads.filter(function(l){return (l.toque||0)>0;}).length + ' contactados';
+    if(key==='campanas') return campanas.filter(function(c){return c.activa;}).length + ' activas';
     if(key==='estadisticas') return leads.filter(function(l){return norm(l.estado)==='ganado';}).length + ' ganados';
     if(key==='flujo') return runs.length + ' ejecuciones';
     return '';
@@ -1096,6 +1208,7 @@
     elEstadisticas.hidden = currentMainTab !== 'estadisticas';
 
     renderStats();
+    renderSegTabs();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
@@ -1109,15 +1222,17 @@
 
   window.RadarKlyrex = {
     openNew: openNew, closeModal: closeModal, saveNew: saveNew,
-    saveEdit: saveEdit, remove: remove
+    saveEdit: saveEdit, remove: remove, saveNewCampana: saveNewCampana
   };
 
   renderHub();
   var startKey = location.hash.replace('#','');
   if(startKey && NAV.some(function(n){return n.key===startKey;})){ currentMainTab = startKey; }
   updateMainView();
+  fetchCampanas();
   fetchLeads();
   setInterval(fetchLeads, 10000);
+  setInterval(fetchCampanas, 20000);
 })();
 </script>
 </body>
