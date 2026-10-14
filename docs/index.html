@@ -327,6 +327,39 @@
   .chart-legend span{display:inline-flex; align-items:center; gap:6px}
   .chart-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
 
+  .rank-card{
+    background:linear-gradient(165deg, var(--surface) 0%, var(--surface-2) 100%);
+    border:1px solid var(--border); border-radius:14px; padding:20px 22px; margin-bottom:16px;
+    position:relative; overflow:hidden;
+  }
+  .rank-card::before{
+    content:''; position:absolute; top:-40%; right:-10%; width:260px; height:260px; border-radius:50%;
+    background:radial-gradient(circle, var(--glow), transparent 70%); opacity:.25; pointer-events:none;
+  }
+  .rank-head{display:flex; align-items:center; gap:8px; margin-bottom:4px}
+  .rank-head h3{font-size:15px; margin:0; display:flex; align-items:center; gap:7px}
+  .rank-sub{font-size:11.5px; color:var(--text-dim); margin-bottom:16px}
+  .rank-insight{
+    font-size:13px; line-height:1.5; padding:12px 14px; margin-bottom:16px; border-radius:10px;
+    background:var(--accent-bg); border:1px solid rgba(227,166,63,.25); color:var(--text);
+  }
+  .rank-insight b{color:var(--accent-strong)}
+  .rank-list{display:flex; flex-direction:column; gap:10px}
+  .rank-row{display:flex; align-items:center; gap:12px}
+  .rank-pos{ width:26px; height:26px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:var(--surface-2); color:var(--text-dim); }
+  .rank-row.top1 .rank-pos{background:linear-gradient(135deg,#f6c569,#c98500); color:#1a1200}
+  .rank-row.top2 .rank-pos{background:linear-gradient(135deg,#d7dbe2,#9aa3b0); color:#1a1c20}
+  .rank-row.top3 .rank-pos{background:linear-gradient(135deg,#dd9c5f,#9a5a2b); color:#241200}
+  .rank-info{flex:1; min-width:0}
+  .rank-name{font-size:12.5px; font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px}
+  .rank-track{height:8px; border-radius:99px; background:var(--surface-2); overflow:hidden}
+  .rank-fill{height:100%; border-radius:99px; transition:width .4s ease}
+  .rank-pct{flex:none; width:70px; text-align:right}
+  .rank-pct b{font-size:16px; font-family:"IBM Plex Mono",monospace; display:block}
+  .rank-pct span{font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em}
+  .rank-lowdata{opacity:.55}
+  .rank-lowdata .rank-pct b{font-size:12px; color:var(--text-dim)}
+
   @media (max-width:900px){
     .sidebar{position:fixed; left:-260px; z-index:40; transition:left .18s ease; box-shadow:0 0 0 2000px rgba(0,0,0,0)}
     .sidebar.open{left:0; box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
@@ -848,6 +881,59 @@
       '<div class="stat ok"><span class="n tabular">'+tasaConv+'%</span><span class="l">Tasa de conversión</span></div>'+
       '<div class="stat blue"><span class="n tabular">'+nuevosSemana+'</span><span class="l">Nuevos (7 días)</span></div>'+
       '<div class="stat"><span class="n tabular">'+scoreMedio+'</span><span class="l">Score medio</span></div>'+
+    '</div>';
+
+    var MIN_MUESTRA = 5;
+    var ranking = campanas.map(function(c){
+      var campLeads = leads.filter(function(l){return l.campana_id===c.id;});
+      var n = campLeads.length;
+      var g = campLeads.filter(function(l){return norm(l.estado)==='ganado';}).length;
+      return {campana:c, n:n, ganados:g, tasa: n>0 ? g/n : 0, suficiente: n>=MIN_MUESTRA};
+    });
+    var conDatos = ranking.filter(function(r){return r.suficiente;}).sort(function(a,b){return b.tasa-a.tasa;});
+    var sinDatos = ranking.filter(function(r){return !r.suficiente;}).sort(function(a,b){return b.n-a.n;});
+    var ordenados = conDatos.concat(sinDatos);
+
+    var insight;
+    if(conDatos.length===0){
+      var faltan = campanas.length===0 ? 0 : Math.max.apply(null, campanas.map(function(c){
+        var n = leads.filter(function(l){return l.campana_id===c.id;}).length;
+        return MIN_MUESTRA - n;
+      }).concat([MIN_MUESTRA]));
+      insight = campanas.length===0
+        ? 'Crea una campaña y asígnale leads para empezar a ver qué funciona mejor.'
+        : 'Todavía no hay suficientes leads por campaña (mínimo '+MIN_MUESTRA+') para destacar cuál va mejor. Faltan datos para que la comparación sea fiable, no por falta de actividad.';
+    } else {
+      var lider = conDatos[0];
+      var resto = conDatos.slice(1);
+      var mediaResto = resto.length ? resto.reduce(function(s,r){return s+r.tasa;},0)/resto.length : 0;
+      var multiplo = mediaResto>0 ? (lider.tasa/mediaResto) : null;
+      insight = '🏆 <b>'+esc(lider.campana.nombre)+'</b> es tu mejor campaña ahora mismo: convierte un <b>'+Math.round(lider.tasa*100)+'%</b>'+
+        (multiplo && multiplo>1.15 ? ' — '+multiplo.toFixed(1)+'× mejor que el resto.' : (resto.length ? '.' : ' (todavía es la única con datos suficientes).'));
+    }
+
+    html += '<div class="rank-card">'+
+      '<div class="rank-head"><h3>🏆 Qué campaña va mejor</h3></div>'+
+      '<div class="rank-sub">Se recalcula solo según entran más leads y resultados. Mínimo '+MIN_MUESTRA+' leads por campaña para entrar en la comparación.</div>'+
+      '<div class="rank-insight">'+insight+'</div>'+
+      (ordenados.length===0 ? '' : '<div class="rank-list">'+
+        ordenados.map(function(r, i){
+          var color = campaignColor(r.campana);
+          var posClass = r.suficiente && i===0 ? ' top1' : r.suficiente && i===1 ? ' top2' : r.suficiente && i===2 ? ' top3' : '';
+          var posIcon = posClass===' top1' ? '🥇' : posClass===' top2' ? '🥈' : posClass===' top3' ? '🥉' : (i+1);
+          var pct = Math.round(r.tasa*100);
+          return '<div class="rank-row'+(r.suficiente?'':' rank-lowdata')+posClass+'">'+
+            '<div class="rank-pos">'+posIcon+'</div>'+
+            '<div class="rank-info">'+
+              '<div class="rank-name"><span class="camp-dot" style="background:'+color+'"></span>'+esc(r.campana.nombre)+'</div>'+
+              '<div class="rank-track"><div class="rank-fill" style="width:'+(r.suficiente?pct:Math.min(100,(r.n/MIN_MUESTRA)*100))+'%;background:'+(r.suficiente?color:'var(--text-dim)')+'"></div></div>'+
+            '</div>'+
+            '<div class="rank-pct">'+
+              (r.suficiente ? '<b style="color:'+color+'">'+pct+'%</b><span>'+r.ganados+'/'+r.n+' ganados</span>' : '<b>'+r.n+'/'+MIN_MUESTRA+'</b><span>faltan datos</span>')+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>')+
     '</div>';
 
     html += '<div class="chart-card"><h3>Leads por estado del pipeline</h3>'+
