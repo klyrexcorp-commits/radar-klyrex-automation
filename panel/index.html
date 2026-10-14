@@ -325,7 +325,7 @@
   var GITHUB_OWNER = 'klyrexcorp-commits';
   var GITHUB_REPO = 'radar-klyrex-automation';
   var GITHUB_WORKFLOW = 'send-sequence.yml';
-  var GITHUB_TOKEN = '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';
+  var GITHUB_ACTIONS_URL = 'https://github.com/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW;
 
   var STATUSES = [
     {key:'nuevo', label:'Nuevo'},
@@ -405,11 +405,10 @@
     return sb('leads?id=eq.'+id, {method:'DELETE'}).then(fetchLeads);
   }
 
-  // ---- GitHub REST helpers ----
+  // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es público) ----
   function gh(path, options){
     options = options || {};
     var headers = Object.assign({
-      Authorization: 'Bearer ' + GITHUB_TOKEN,
       Accept: 'application/vnd.github+json'
     }, options.headers || {});
     return fetch('https://api.github.com' + path, Object.assign({}, options, {headers: headers}))
@@ -428,26 +427,12 @@
 
   var runs = [];
   var flujoError = '';
-  var triggering = false;
   var flujoPollTimer = null;
 
   function fetchRuns(){
     return gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/runs?per_page=8')
       .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
       .catch(function(e){ flujoError = e.message; renderFlujo(); });
-  }
-
-  function triggerRun(){
-    if(triggering) return;
-    triggering = true;
-    renderFlujo();
-    gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/dispatches', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ref:'main'})
-    })
-      .then(function(){ return new Promise(function(r){ setTimeout(r, 2500); }); })
-      .then(function(){ return fetchRuns(); })
-      .catch(function(e){ flujoError = 'Error al lanzar: ' + e.message; })
-      .then(function(){ triggering = false; renderFlujo(); });
   }
 
   function statusInfo(run){
@@ -502,20 +487,18 @@
         '</div>' +
         '<div style="display:flex;gap:8px">' +
           '<button class="btn sm" id="btnRefreshRuns" title="Actualizar">↻</button>' +
-          '<button class="btn primary" id="btnTriggerRun"'+(triggering?' disabled':'')+'>'+(triggering?'Lanzando…':'▶ Ejecutar ahora')+'</button>' +
+          '<a class="btn primary" href="'+GITHUB_ACTIONS_URL+'" target="_blank" rel="noopener">▶ Ejecutar en GitHub ↗</a>' +
         '</div>' +
       '</div>' +
       (flujoError ? '<div style="color:var(--crit);font-size:12.5px;margin-bottom:10px">'+esc(flujoError)+'</div>' : '') +
-      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Próxima ejecución automática: todos los días a las 8:00 UTC (≈9-10h en España)</div>' +
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Próxima ejecución automática: todos los días a las 8:00 UTC (≈9-10h en España). "Ejecutar en GitHub" te lleva a la página del workflow para lanzarlo con un clic ("Run workflow").</div>' +
       '<div class="run-list">' +
         (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">Todavía no hay historial de ejecuciones.</div>') +
       '</div>' +
-      '<div class="flujo-note">Esta pestaña usa una clave de GitHub limitada solo a lanzar y leer ejecuciones de este repositorio.</div>' +
+      '<div class="flujo-note">El historial se lee directamente de GitHub (repositorio público, sin claves en el código).</div>' +
     '</div>';
 
     elFlujo.innerHTML = html;
-    var btnTrigger = document.getElementById('btnTriggerRun');
-    if(btnTrigger) btnTrigger.addEventListener('click', triggerRun);
     var btnRefresh = document.getElementById('btnRefreshRuns');
     if(btnRefresh) btnRefresh.addEventListener('click', fetchRuns);
   }
