@@ -640,20 +640,61 @@
       '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub ↗</a>' +
     '</div>';
   }
+  function computeListosHoy(){
+    var EXCLUIDOS = ['baja','respondido','ganado','perdido'];
+    var hoy = new Date();
+    var porCampana = {};
+    var total = 0;
+    leads.forEach(function(l){
+      if(!l.email) return;
+      if(EXCLUIDOS.indexOf(norm(l.estado))!==-1) return;
+      var camp = campanaById(l.campana_id);
+      if(!camp || !camp.activa) return;
+      var toque = Number(l.toque||0);
+      var siguiente = camp.campana_toques[toque];
+      if(!siguiente) return;
+      if(toque>0 && l.fecha_ultimo_envio){
+        var ultimo = new Date(l.fecha_ultimo_envio);
+        var dias = (hoy - ultimo) / (1000*60*60*24);
+        if(dias < siguiente.espera_dias) return;
+      }
+      total++;
+      porCampana[camp.id] = (porCampana[camp.id]||0) + 1;
+    });
+    return {total: total, porCampana: porCampana};
+  }
+
   function renderFlujo(){
     var last = runs[0];
     var lastInfo = last ? statusInfo(last) : null;
+    var listos = computeListosHoy();
+    var maxCamp = Math.max.apply(null, Object.keys(listos.porCampana).map(function(k){return listos.porCampana[k];}).concat([1]));
     var html = '';
     html += '<div class="flow">' +
       flowStep(1, 'Prospección', 'Apify / búsquedas manuales encuentran negocios y empresas') +
       flowArrow() +
-      flowStep(2, 'Supabase', 'Los leads se guardan en la tabla central (leads)') +
+      flowStep(2, 'Campañas', 'Cada lead se asigna a una campaña con su propia secuencia de emails') +
       flowArrow() +
-      flowStep(3, 'GitHub Actions', 'Cada día a las 8:00 UTC revisa a quién toca contactar') +
+      flowStep(3, 'GitHub Actions', 'Cada día a las 8:00 UTC revisa TODAS las campañas activas a la vez') +
       flowArrow() +
-      flowStep(4, 'Gmail', 'Envía el email de la secuencia desde info@klyrex.es') +
+      flowStep(4, 'Gmail', 'Envía a cada lead listo el email de su próximo toque, desde info@klyrex.es') +
       flowArrow() +
-      flowStep(5, 'Supabase', 'Marca el lead como Contactado y guarda la fecha') +
+      flowStep(5, 'Supabase', 'Marca Contactado, avanza el toque y guarda la fecha de envío') +
+    '</div>';
+    html += '<div class="run-card">' +
+      '<div class="run-head">' +
+        '<div>' +
+          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Listos para el próximo envío ahora mismo</div>' +
+          '<span class="mono" style="font-size:28px;font-weight:800;color:'+(listos.total>0?'var(--accent-strong)':'var(--text-dim)')+'">'+listos.total+'</span>' +
+          ' <span style="font-size:12px;color:var(--text-dim)">leads recibirían un email si ejecutas ahora</span>' +
+        '</div>' +
+      '</div>' +
+      (listos.total>0 ?
+        campanas.filter(function(c){return listos.porCampana[c.id];}).map(function(c){
+          return barRowHtml(c.nombre, listos.porCampana[c.id], maxCamp, campaignColor(c));
+        }).join('')
+        : '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:6px">Ningún lead tiene un toque pendiente hoy (ya se les envió, o están esperando el plazo entre toques).</div>') +
+      '<div class="flujo-note">"Ejecutar en GitHub" procesa <b>todas</b> las campañas activas en la misma pasada — no solo una. Cada lead listo (de cualquier campaña) recibe el email de su siguiente toque; el resto se queda esperando su turno.</div>' +
     '</div>';
     html += '<div class="run-card">' +
       '<div class="run-head">' +
