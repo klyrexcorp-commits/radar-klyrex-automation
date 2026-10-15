@@ -288,6 +288,7 @@
   table.contactos tr:last-child td{border-bottom:none}
   table.contactos tbody tr{cursor:pointer}
   table.contactos tbody tr:hover{background:var(--surface-2)}
+  .sent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--ok); margin-right:7px; box-shadow:0 0 0 2px var(--ok-bg)}
 
   /* Campañas */
   .camp-toolbar{display:flex; justify-content:flex-end; margin-bottom:16px}
@@ -610,6 +611,15 @@
   var runs = [];
   var flujoError = '';
   var flujoPollTimer = null;
+  var envioEstado = null;
+  var envioPollTimer = null;
+
+  function fetchEnvioEstado(){
+    return sb('envio_estado?id=eq.global&select=*').then(function(rows){
+      envioEstado = (rows && rows[0]) || null;
+      if(currentMainTab==='flujo') renderFlujo();
+    }).catch(function(e){ console.error('Error leyendo envio_estado', e); });
+  }
 
   function fetchRuns(){
     return gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/runs?per_page=8')
@@ -680,7 +690,7 @@
       flowArrow() +
       flowStep(2, 'Campañas', 'Cada lead se asigna a una campaña con su propia secuencia de emails') +
       flowArrow() +
-      flowStep(3, 'GitHub Actions', 'Cada día a las 8:00 UTC revisa TODAS las campañas activas a la vez') +
+      flowStep(3, 'GitHub Actions', 'Solo se activa cuando pulsas "Ejecutar en GitHub" — revisa TODAS las campañas activas a la vez') +
       flowArrow() +
       flowStep(4, 'Gmail', 'Envía a cada lead listo el email de su próximo toque, desde info@klyrex.es') +
       flowArrow() +
@@ -701,6 +711,18 @@
         : '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:6px">Ningún lead tiene un toque pendiente hoy (ya se les envió, o están esperando el plazo entre toques).</div>') +
       '<div class="flujo-note">"Ejecutar en GitHub" procesa <b>todas</b> las campañas activas en la misma pasada — no solo una. Cada lead listo (de cualquier campaña) recibe el email de su siguiente toque; el resto se queda esperando su turno.</div>' +
     '</div>';
+    if(envioEstado && envioEstado.en_curso){
+      var pctEnvio = envioEstado.total>0 ? Math.round((envioEstado.enviados/envioEstado.total)*100) : 0;
+      html += '<div class="run-card">' +
+        '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:8px">📤 Enviando ahora mismo</div>' +
+        '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">' +
+          '<span class="mono" style="font-size:22px;font-weight:800;color:var(--accent-strong)">'+envioEstado.enviados+' / '+envioEstado.total+'</span>' +
+          '<span style="font-size:12px;color:var(--text-dim)">emails enviados ('+pctEnvio+'%)</span>' +
+        '</div>' +
+        '<div class="bar-track" style="height:10px"><div class="bar-fill" style="width:'+pctEnvio+'%;background:var(--accent)"></div></div>' +
+        '<div class="flujo-note" style="margin-top:10px">Hay una pausa entre cada email para no parecer spam, así que con muchos leads puede tardar un buen rato. Puedes seguir usando el panel mientras tanto — esto se actualiza solo.</div>' +
+      '</div>';
+    }
     html += '<div class="run-card">' +
       '<div class="run-head">' +
         '<div>' +
@@ -716,7 +738,7 @@
         '</div>' +
       '</div>' +
       (flujoError ? '<div style="color:var(--crit);font-size:12.5px;margin-bottom:10px">'+esc(flujoError)+'</div>' : '') +
-      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Próxima ejecución automática: todos los días a las 8:00 UTC (≈9-10h en España). "Ejecutar en GitHub" te lleva a la página del workflow para lanzarlo con un clic ("Run workflow").</div>' +
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">El envío ya no es automático: solo se lanza cuando pulsas "Ejecutar en GitHub", que te lleva a la página del workflow para lanzarlo con un clic ("Run workflow").</div>' +
       '<div class="run-list">' +
         (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">Todavía no hay historial de ejecuciones.</div>') +
       '</div>' +
@@ -740,7 +762,7 @@
       var checked = selectedIds.has(String(l.id)) ? ' checked' : '';
       return '<tr data-id="'+l.id+'">' +
         '<td><input type="checkbox" class="row-select" data-select-id="'+l.id+'"'+checked+'></td>' +
-        '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
+        '<td style="font-weight:600">'+(l.fecha_ultimo_envio?'<span class="sent-dot" title="Ya se le ha enviado al menos un email ('+esc(l.fecha_ultimo_envio)+')"></span>':'')+esc(l.nombre)+'</td>' +
         '<td>'+campChipHtml(l.campana_id)+'</td>' +
         '<td>'+esc(l.contacto)+'</td>' +
         '<td>'+esc(l.telefono)+'</td>' +
@@ -1612,6 +1634,7 @@
     elAppShell.hidden = isHub;
 
     if(flujoPollTimer){ clearInterval(flujoPollTimer); flujoPollTimer = null; }
+    if(envioPollTimer){ clearInterval(envioPollTimer); envioPollTimer = null; }
 
     if(isHub){ renderHub(); playTransition(elHubView); return; }
 
@@ -1638,7 +1661,9 @@
     if(currentMainTab === 'flujo'){
       renderFlujo();
       fetchRuns();
+      fetchEnvioEstado();
       flujoPollTimer = setInterval(fetchRuns, 120000);
+      envioPollTimer = setInterval(fetchEnvioEstado, 5000);
     }
   }
 
