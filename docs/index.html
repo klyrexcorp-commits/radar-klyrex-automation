@@ -289,6 +289,11 @@
   table.contactos tr:last-child td{border-bottom:none}
   table.contactos tbody tr{cursor:pointer}
   table.contactos tbody tr:hover{background:var(--surface-2)}
+  table.contactos td.sel-cell{padding:0; cursor:pointer}
+  table.contactos td.sel-cell .sel-hit{display:flex; align-items:center; justify-content:center; width:100%; height:100%; padding:9px 14px; user-select:none}
+  table.contactos td.sel-cell input{pointer-events:none; transform:scale(1.15)}
+  table.contactos th.sel-head{padding:10px 14px}
+  .contactos-bar{position:sticky; top:0; z-index:6}
   .sent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--ok); margin-right:7px; box-shadow:0 0 0 2px var(--ok-bg)}
 
   /* Campañas */
@@ -784,7 +789,7 @@
     var rows = list.map(function(l){
       var checked = selectedIds.has(String(l.id)) ? ' checked' : '';
       return '<tr data-id="'+l.id+'">' +
-        '<td><input type="checkbox" class="row-select" data-select-id="'+l.id+'"'+checked+'></td>' +
+        '<td class="sel-cell"><span class="sel-hit"><input type="checkbox" class="row-select" data-select-id="'+l.id+'" tabindex="-1"'+checked+'></span></td>' +
         '<td style="font-weight:600">'+(l.fecha_ultimo_envio?'<span class="sent-dot" title="Ya se le ha enviado al menos un email ('+esc(l.fecha_ultimo_envio)+')"></span>':'')+esc(l.nombre)+'</td>' +
         '<td>'+campChipHtml(l.campana_id)+'</td>' +
         '<td>'+esc(l.contacto)+'</td>' +
@@ -800,7 +805,7 @@
     var allChecked = selectedIds.size>0 && list.every(function(l){return selectedIds.has(String(l.id));});
     var barBoxStyle = 'display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;border:1px solid ';
     var barHtml = selectedIds.size>0 ?
-      ('<div style="'+barBoxStyle+'rgba(227,166,63,.25);background:var(--accent-bg)">'+
+      ('<div class="contactos-bar" style="'+barBoxStyle+'rgba(227,166,63,.25);background:var(--bg)">'+
         '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
         '<div style="display:flex;gap:8px;align-items:center">'+
           '<select id="bulkCampanaSelect" class="sm">'+
@@ -812,14 +817,14 @@
           '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
         '</div>'+
       '</div>')
-      : ('<div style="'+barBoxStyle+'transparent">'+
-          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: arrastra sobre las casillas para seleccionar varias, o mayúsculas+clic para seleccionar un rango.</span>'+
+      : ('<div class="contactos-bar" style="'+barBoxStyle+'var(--border);background:var(--bg)">'+
+          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayúsculas+clic para seleccionar un rango.</span>'+
           '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
         '</div>');
 
     elContactos.innerHTML = barHtml +
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th><input type="checkbox" id="selectAllRows"'+(allChecked?' checked':'')+'></th>'+
+        '<th class="sel-head"><input type="checkbox" id="selectAllRows"'+(allChecked?' checked':'')+'></th>'+
         '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Provincia</th><th>Estado</th><th>Toque</th><th>Score</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
 
@@ -829,10 +834,11 @@
         openDetail(tr.getAttribute('data-id'));
       });
     });
-    var rowSelectEls = Array.from(elContactos.querySelectorAll('.row-select'));
-    rowSelectEls.forEach(function(cb, idx){
-      cb.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); });
-      cb.addEventListener('mousedown', function(e){
+    var selCellEls = Array.from(elContactos.querySelectorAll('td.sel-cell'));
+    selCellEls.forEach(function(cell, idx){
+      var cb = cell.querySelector('.row-select');
+      cell.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); });
+      cell.addEventListener('mousedown', function(e){
         e.preventDefault();
         e.stopPropagation();
         var id = cb.getAttribute('data-select-id');
@@ -841,7 +847,7 @@
           var end = Math.max(lastClickedIndex, idx);
           var shouldCheck = !selectedIds.has(id);
           for(var i=start;i<=end;i++){
-            var id2 = rowSelectEls[i].getAttribute('data-select-id');
+            var id2 = selCellEls[i].querySelector('.row-select').getAttribute('data-select-id');
             if(shouldCheck) selectedIds.add(id2); else selectedIds.delete(id2);
           }
           dragSelectValue = null;
@@ -854,7 +860,7 @@
         lastClickedIndex = idx;
         renderContactos();
       });
-      cb.addEventListener('mouseenter', function(e){
+      cell.addEventListener('mouseenter', function(e){
         if(dragSelectValue===null) return;
         if((e.buttons & 1) !== 1){ dragSelectValue = null; return; }
         var id = cb.getAttribute('data-select-id');
