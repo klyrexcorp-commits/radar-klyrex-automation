@@ -455,6 +455,8 @@
   var searchQuery = '';
   var currentMainTab = 'hub';
   var selectedIds = new Set();
+  var dragSelectValue = null;
+  var lastClickedIndex = null;
 
   function campanaById(id){ return campanas.find(function(c){return c.id===id;}); }
   function campaignColor(campana){
@@ -695,8 +697,9 @@
       '</tr>';
     }).join('');
     var allChecked = selectedIds.size>0 && list.every(function(l){return selectedIds.has(String(l.id));});
+    var barBoxStyle = 'display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;border:1px solid ';
     var barHtml = selectedIds.size>0 ?
-      ('<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;background:var(--accent-bg);border:1px solid rgba(227,166,63,.25);border-radius:10px;padding:8px 12px">'+
+      ('<div style="'+barBoxStyle+'rgba(227,166,63,.25);background:var(--accent-bg)">'+
         '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
         '<div style="display:flex;gap:8px;align-items:center">'+
           '<select id="bulkCampanaSelect" class="sm">'+
@@ -708,7 +711,10 @@
           '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
         '</div>'+
       '</div>')
-      : '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button></div>';
+      : ('<div style="'+barBoxStyle+'transparent">'+
+          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: arrastra sobre las casillas para seleccionar varias, o mayúsculas+clic para seleccionar un rango.</span>'+
+          '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+        '</div>');
 
     elContactos.innerHTML = barHtml +
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
@@ -722,11 +728,36 @@
         openDetail(tr.getAttribute('data-id'));
       });
     });
-    elContactos.querySelectorAll('.row-select').forEach(function(cb){
-      cb.addEventListener('click', function(e){ e.stopPropagation(); });
-      cb.addEventListener('change', function(){
+    var rowSelectEls = Array.from(elContactos.querySelectorAll('.row-select'));
+    rowSelectEls.forEach(function(cb, idx){
+      cb.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); });
+      cb.addEventListener('mousedown', function(e){
+        e.preventDefault();
+        e.stopPropagation();
         var id = cb.getAttribute('data-select-id');
-        if(cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+        if(e.shiftKey && lastClickedIndex!=null){
+          var start = Math.min(lastClickedIndex, idx);
+          var end = Math.max(lastClickedIndex, idx);
+          var shouldCheck = !selectedIds.has(id);
+          for(var i=start;i<=end;i++){
+            var id2 = rowSelectEls[i].getAttribute('data-select-id');
+            if(shouldCheck) selectedIds.add(id2); else selectedIds.delete(id2);
+          }
+          dragSelectValue = null;
+          renderContactos();
+          return;
+        }
+        var newVal = !selectedIds.has(id);
+        dragSelectValue = newVal;
+        if(newVal) selectedIds.add(id); else selectedIds.delete(id);
+        lastClickedIndex = idx;
+        renderContactos();
+      });
+      cb.addEventListener('mouseenter', function(e){
+        if(dragSelectValue===null) return;
+        if((e.buttons & 1) !== 1){ dragSelectValue = null; return; }
+        var id = cb.getAttribute('data-select-id');
+        if(dragSelectValue) selectedIds.add(id); else selectedIds.delete(id);
         renderContactos();
       });
     });
@@ -1491,6 +1522,7 @@
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
   });
+  document.addEventListener('mouseup', function(){ dragSelectValue = null; });
   document.getElementById('sidebarBrand').addEventListener('click', function(){ goTo('hub'); });
   elOverlay.addEventListener('click', function(e){ if(e.target===elOverlay) closeModal(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !elOverlay.hidden) closeModal(); });
