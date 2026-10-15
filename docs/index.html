@@ -802,29 +802,9 @@
         '<td class="tabular">'+(l.score!=null?l.score:'')+'</td>' +
       '</tr>';
     }).join('');
-    var allChecked = selectedIds.size>0 && list.every(function(l){return selectedIds.has(String(l.id));});
-    var barBoxStyle = 'display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;border:1px solid ';
-    var barHtml = selectedIds.size>0 ?
-      ('<div class="contactos-bar" style="'+barBoxStyle+'rgba(227,166,63,.25);background:var(--bg)">'+
-        '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
-        '<div style="display:flex;gap:8px;align-items:center">'+
-          '<select id="bulkCampanaSelect" class="sm">'+
-            '<option value="">Mover a campaña…</option>'+
-            '<option value="__ninguna__">Sin campaña</option>'+
-            campanas.map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
-          '</select>'+
-          '<button class="btn sm primary" id="btnBulkMove">Mover</button>'+
-          '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
-        '</div>'+
-      '</div>')
-      : ('<div class="contactos-bar" style="'+barBoxStyle+'var(--border);background:var(--bg)">'+
-          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayúsculas+clic para seleccionar un rango.</span>'+
-          '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
-        '</div>');
-
-    elContactos.innerHTML = barHtml +
+    elContactos.innerHTML = '<div id="contactosBar"></div>'+
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th class="sel-head"><input type="checkbox" id="selectAllRows"'+(allChecked?' checked':'')+'></th>'+
+        '<th class="sel-head"><input type="checkbox" id="selectAllRows"></th>'+
         '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Provincia</th><th>Estado</th><th>Toque</th><th>Score</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
 
@@ -851,33 +831,70 @@
             if(shouldCheck) selectedIds.add(id2); else selectedIds.delete(id2);
           }
           dragSelectValue = null;
-          renderContactos();
+          syncContactosSelectionUI(visibleIds);
           return;
         }
         var newVal = !selectedIds.has(id);
         dragSelectValue = newVal;
         if(newVal) selectedIds.add(id); else selectedIds.delete(id);
         lastClickedIndex = idx;
-        renderContactos();
+        syncContactosSelectionUI(visibleIds);
       });
       cell.addEventListener('mouseenter', function(e){
         if(dragSelectValue===null) return;
         if((e.buttons & 1) !== 1){ dragSelectValue = null; return; }
         var id = cb.getAttribute('data-select-id');
         if(dragSelectValue) selectedIds.add(id); else selectedIds.delete(id);
-        renderContactos();
+        syncContactosSelectionUI(visibleIds);
       });
     });
     var selectAll = document.getElementById('selectAllRows');
     if(selectAll) selectAll.addEventListener('change', function(){
       if(selectAll.checked) visibleIds.forEach(function(id){selectedIds.add(id);});
       else visibleIds.forEach(function(id){selectedIds.delete(id);});
-      renderContactos();
+      syncContactosSelectionUI(visibleIds);
     });
+    syncContactosSelectionUI(visibleIds);
+  }
+
+  // Actualiza solo la barra de selección y el estado "checked" de las casillas
+  // ya existentes en el DOM, sin reconstruir la tabla — así un arrastre rápido
+  // no se interrumpe por culpa de un re-render completo a mitad de camino.
+  function syncContactosSelectionUI(visibleIds){
+    var barBoxStyle = 'display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;border:1px solid ';
+    var barHtml = selectedIds.size>0 ?
+      ('<div class="contactos-bar" style="'+barBoxStyle+'rgba(227,166,63,.25);background:var(--bg)">'+
+        '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
+        '<div style="display:flex;gap:8px;align-items:center">'+
+          '<select id="bulkCampanaSelect" class="sm">'+
+            '<option value="">Mover a campaña…</option>'+
+            '<option value="__ninguna__">Sin campaña</option>'+
+            campanas.map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
+          '</select>'+
+          '<button class="btn sm primary" id="btnBulkMove">Mover</button>'+
+          '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
+        '</div>'+
+      '</div>')
+      : ('<div class="contactos-bar" style="'+barBoxStyle+'var(--border);background:var(--bg)">'+
+          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayúsculas+clic para seleccionar un rango.</span>'+
+          '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+        '</div>');
+    var barEl = document.getElementById('contactosBar');
+    if(!barEl) return;
+    barEl.innerHTML = barHtml;
+
+    elContactos.querySelectorAll('.row-select').forEach(function(cb){
+      cb.checked = selectedIds.has(cb.getAttribute('data-select-id'));
+    });
+    var selectAll = document.getElementById('selectAllRows');
+    if(selectAll){
+      selectAll.checked = selectedIds.size>0 && visibleIds.every(function(id){return selectedIds.has(id);});
+    }
+
     var exportBtn = document.getElementById('btnExportCsv');
     if(exportBtn) exportBtn.addEventListener('click', exportCsv);
     var btnBulkClear = document.getElementById('btnBulkClear');
-    if(btnBulkClear) btnBulkClear.addEventListener('click', function(){ selectedIds.clear(); renderContactos(); });
+    if(btnBulkClear) btnBulkClear.addEventListener('click', function(){ selectedIds.clear(); syncContactosSelectionUI(visibleIds); });
     var btnBulkMove = document.getElementById('btnBulkMove');
     if(btnBulkMove) btnBulkMove.addEventListener('click', function(){
       var sel = document.getElementById('bulkCampanaSelect');
