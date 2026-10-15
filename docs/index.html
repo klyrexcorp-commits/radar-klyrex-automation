@@ -322,7 +322,19 @@
   .toque-wait input{width:48px; padding:4px 6px; font-size:12px; text-align:center}
   .toque-head .right{margin-left:auto}
   .toque-card input.toque-subject{width:100%; font-weight:600; font-size:13px; margin-bottom:6px}
-  .toque-card textarea.toque-body{width:100%; font-size:12.5px; line-height:1.6; min-height:110px}
+  .toque-cond{display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-dim); margin-bottom:8px}
+  .toque-cond select{font-size:11.5px; padding:4px 6px}
+  .toque-toolbar{display:flex; gap:3px; margin-bottom:5px}
+  .toque-toolbar button{ width:26px; height:26px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text-dim); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .toque-toolbar button:hover{background:var(--surface-2); color:var(--text)}
+  .toque-toolbar button b, .toque-toolbar button i{pointer-events:none}
+  .toque-body-rich{
+    width:100%; min-height:110px; font-size:12.5px; line-height:1.6; font-family:inherit; color:var(--text);
+    background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 11px; overflow-y:auto;
+  }
+  .toque-body-rich:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .toque-body-rich img{max-width:100%; border-radius:4px}
+  .toque-body-rich a{color:var(--accent-strong); text-decoration:underline}
   .camp-add-toque{margin-top:10px}
 
   /* Estadisticas */
@@ -902,15 +914,34 @@
     '</div>';
   }
 
+  var CONDICION_LABELS = {
+    siempre: 'Siempre',
+    no_abierto_anterior: 'Solo si NO abrió el anterior',
+    abierto_no_respondido_anterior: 'Solo si lo abrió pero no respondió'
+  };
+
   function toqueCardHtml(t, idx){
+    var condicionHtml = idx===0 ? '' :
+      '<div class="toque-cond">Enviar: <select data-toque-condicion="'+t.id+'">'+
+        Object.keys(CONDICION_LABELS).map(function(k){
+          return '<option value="'+k+'"'+(t.condicion===k?' selected':'')+'>'+CONDICION_LABELS[k]+'</option>';
+        }).join('')+
+      '</select></div>';
     return '<div class="toque-card" data-toque-id="'+t.id+'">'+
       '<div class="toque-head">'+
         '<span class="toque-num">TOQUE '+(idx+1)+'</span>'+
         '<label class="toque-wait">Esperar <input type="number" min="0" class="toque-wait-input" data-toque-wait="'+t.id+'" value="'+t.espera_dias+'"> días</label>'+
         '<button class="btn sm danger right" data-toque-delete="'+t.id+'" title="Eliminar toque">✕</button>'+
       '</div>'+
+      condicionHtml+
       '<input class="toque-subject" data-toque-subject="'+t.id+'" value="'+esc(t.asunto)+'" placeholder="Asunto del email">'+
-      '<textarea class="toque-body" data-toque-body="'+t.id+'" placeholder="Cuerpo del email. Variables: {negocio} {contacto} {ciudad}">'+esc(t.cuerpo)+'</textarea>'+
+      '<div class="toque-toolbar">'+
+        '<button type="button" data-rte-cmd="bold" data-rte-target="'+t.id+'" title="Negrita"><b>B</b></button>'+
+        '<button type="button" data-rte-cmd="italic" data-rte-target="'+t.id+'" title="Cursiva"><i>I</i></button>'+
+        '<button type="button" data-rte-cmd="createLink" data-rte-target="'+t.id+'" title="Insertar enlace">🔗</button>'+
+        '<button type="button" data-rte-cmd="insertImage" data-rte-target="'+t.id+'" title="Insertar imagen (por URL)">🖼</button>'+
+      '</div>'+
+      '<div class="toque-body-rich" contenteditable="true" data-toque-body="'+t.id+'" data-placeholder="Cuerpo del email. Variables: {negocio} {contacto} {ciudad}">'+(t.cuerpo||'')+'</div>'+
     '</div>';
   }
 
@@ -963,11 +994,11 @@
   }
 
   var TOQUE_TEMPLATES = [
-    {espera:0, asunto:'Una idea rápida para {negocio}', cuerpo:'Hola {contacto},\n\nHe visto {negocio} en {ciudad} y creo que podemos ayudaros a conseguir más clientes sin complicaros la vida.\n\n¿Tenéis 15 minutos esta semana para comentarlo?\n\nUn saludo,\nIgnacio'},
-    {espera:4, asunto:'Re: Una idea rápida para {negocio}', cuerpo:'Hola {contacto},\n\nTe escribía hace unos días por si te había pillado liado/a. Sigo pensando que podría interesaros.\n\n¿Te viene bien una llamada corta esta semana?\n\nUn saludo,\nIgnacio'},
-    {espera:7, asunto:'Última idea para {negocio}', cuerpo:'Hola {contacto},\n\nNo quiero insistir más de la cuenta, así que este es mi último mensaje por ahora. Si en algún momento os interesa, aquí estaré.\n\nUn saludo,\nIgnacio'},
-    {espera:10, asunto:'¿Seguimos en contacto, {negocio}?', cuerpo:'Hola {contacto},\n\nSi surge algo en el futuro, no dudéis en escribirme. Os dejo mi contacto por si acaso.\n\nUn saludo,\nIgnacio'},
-    {espera:14, asunto:'Cierro el contacto por ahora', cuerpo:'Hola {contacto},\n\nDejo de insistir, pero la puerta queda abierta cuando os venga bien.\n\nUn saludo,\nIgnacio'}
+    {espera:0, condicion:'siempre', asunto:'Una idea rápida para {negocio}', cuerpo:'Hola {contacto},<br><br>He visto {negocio} en {ciudad} y creo que podemos ayudaros a conseguir más clientes sin complicaros la vida.<br><br>¿Tenéis 15 minutos esta semana para comentarlo?<br><br>Un saludo,<br>Ignacio'},
+    {espera:1, condicion:'no_abierto_anterior', asunto:'¿Te llegó mi email, {negocio}?', cuerpo:'Hola {contacto},<br><br>No sé si te llegó mi mensaje de ayer, por si se perdió te lo reenvío. Seguimos pensando que podríamos ayudaros con {negocio}.<br><br>¿Te viene bien una llamada corta esta semana?<br><br>Un saludo,<br>Ignacio'},
+    {espera:1, condicion:'abierto_no_respondido_anterior', asunto:'Re: Una idea rápida para {negocio}', cuerpo:'Hola {contacto},<br><br>Vi que abriste mi email de ayer — no quería dejarlo ahí. ¿Qué te parece si lo hablamos 15 minutos esta semana?<br><br>Un saludo,<br>Ignacio'},
+    {espera:7, condicion:'siempre', asunto:'¿Seguimos en contacto, {negocio}?', cuerpo:'Hola {contacto},<br><br>No quiero insistir más de la cuenta. Si surge algo en el futuro, no dudéis en escribirme — os dejo mi contacto por si acaso.<br><br>Un saludo,<br>Ignacio'},
+    {espera:14, condicion:'siempre', asunto:'Cierro el contacto por ahora', cuerpo:'Hola {contacto},<br><br>Dejo de insistir, pero la puerta queda abierta cuando os venga bien.<br><br>Un saludo,<br>Ignacio'}
   ];
 
   function openNewCampana(){
@@ -979,14 +1010,14 @@
           '<select id="nc_toques">'+
             '<option value="1">1 — un solo email</option>'+
             '<option value="2">2 — email + recordatorio</option>'+
-            '<option value="3" selected>3 — recomendado</option>'+
+            '<option value="3" selected>3 — recomendado, con ramas</option>'+
             '<option value="4">4</option>'+
             '<option value="5">5</option>'+
           '</select>'+
         '</div>'+
       '</div>'+
       '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.6;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px">'+
-        'Se crea ya con una secuencia de ejemplo escrita, lista para editar. Variables que se rellenan solas: '+
+        'Se crea ya con una secuencia de ejemplo escrita, lista para editar. Con 3 toques, el 2º y 3º se ramifican: uno se envía si NO han abierto el primero, el otro si lo abrieron pero no contestaron. Puedes cambiar esto en cada toque. Variables que se rellenan solas: '+
         '<span class="mono" style="color:var(--accent-strong)">{negocio}</span> '+
         '<span class="mono" style="color:var(--accent-strong)">{contacto}</span> '+
         '<span class="mono" style="color:var(--accent-strong)">{ciudad}</span>'+
@@ -1009,7 +1040,7 @@
       if(!nueva) return;
       for(var i=0;i<numToques;i++){
         var tpl = TOQUE_TEMPLATES[i];
-        createToque({campana_id: nueva.id, orden:i, espera_dias: tpl.espera, asunto: tpl.asunto, cuerpo: tpl.cuerpo});
+        createToque({campana_id: nueva.id, orden:i, espera_dias: tpl.espera, condicion: tpl.condicion, asunto: tpl.asunto, cuerpo: tpl.cuerpo});
       }
     });
   }
@@ -1033,12 +1064,31 @@
       var campId = addToque.getAttribute('data-camp-add-toque');
       var camp = campanaById(campId);
       var orden = camp ? camp.campana_toques.length : 0;
-      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},\n\n'});
+      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, condicion:'siempre', asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},<br><br>'});
       return;
     }
     var delToque = e.target.closest('[data-toque-delete]');
     if(delToque){
       if(confirm('¿Eliminar este toque de la secuencia?')) deleteToque(delToque.getAttribute('data-toque-delete'));
+      return;
+    }
+    var rteBtn = e.target.closest('[data-rte-cmd]');
+    if(rteBtn){
+      var cmd = rteBtn.getAttribute('data-rte-cmd');
+      var targetId = rteBtn.getAttribute('data-rte-target');
+      var editor = elCampanas.querySelector('.toque-body-rich[data-toque-body="'+targetId+'"]');
+      if(!editor) return;
+      editor.focus();
+      if(cmd==='createLink'){
+        var url = prompt('URL del enlace (ej. https://klyrex.es):');
+        if(url) document.execCommand('createLink', false, url);
+      } else if(cmd==='insertImage'){
+        var imgUrl = prompt('URL de la imagen (debe estar ya subida en algún sitio, ej. Google Drive público, Imgur…):');
+        if(imgUrl) document.execCommand('insertImage', false, imgUrl);
+      } else {
+        document.execCommand(cmd, false, null);
+      }
+      updateToque(targetId, {cuerpo: editor.innerHTML});
       return;
     }
   });
@@ -1047,8 +1097,14 @@
     if(t.matches('[data-camp-name]')){ updateCampana(t.getAttribute('data-camp-name'), {nombre: t.value.trim()||'Sin nombre'}); return; }
     if(t.matches('[data-toque-wait]')){ updateToque(t.getAttribute('data-toque-wait'), {espera_dias: Math.max(0, Number(t.value)||0)}); return; }
     if(t.matches('[data-toque-subject]')){ updateToque(t.getAttribute('data-toque-subject'), {asunto: t.value}); return; }
-    if(t.matches('[data-toque-body]')){ updateToque(t.getAttribute('data-toque-body'), {cuerpo: t.value}); return; }
+    if(t.matches('[data-toque-condicion]')){ updateToque(t.getAttribute('data-toque-condicion'), {condicion: t.value}); return; }
   });
+  elCampanas.addEventListener('blur', function(e){
+    var t = e.target;
+    if(t.matches && t.matches('.toque-body-rich[data-toque-body]')){
+      updateToque(t.getAttribute('data-toque-body'), {cuerpo: t.innerHTML});
+    }
+  }, true);
 
   // ---- Estadisticas ----
   function barRowHtml(label, val, max, color){
