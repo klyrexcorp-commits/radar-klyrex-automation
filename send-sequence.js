@@ -90,6 +90,8 @@ function rellenarPlantilla(texto, lead) {
     .replace(/\{ciudad\}/g, lead.ciudad || 'tu zona');
 }
 
+// Elige, para cada lead, el siguiente toque elegible según el orden de la
+// campaña, el tiempo de espera y la condición de apertura/respuesta del toque.
 function elegibles(leads, campanasPorId) {
   const hoy = new Date();
   const out = [];
@@ -98,18 +100,32 @@ function elegibles(leads, campanasPorId) {
     const campana = campanasPorId.get(d.campana_id);
     if (!campana) continue;
 
-    const toque = Number(d.toque || 0);
-    const siguienteToque = campana.campana_toques[toque];
-    if (!siguienteToque) continue;
+    const enviados = new Set(d.toques_enviados || []);
+    const abierto = !!d.abierto_en;
+    const respondido = String(d.estado || '').toLowerCase() === 'respondido';
 
-    if (toque > 0 && d.fecha_ultimo_envio) {
-      const ultimo = new Date(d.fecha_ultimo_envio);
-      const dias = (hoy - ultimo) / (1000 * 60 * 60 * 24);
-      if (dias < siguienteToque.espera_dias) continue;
+    let diasDesdeUltimo = Infinity;
+    if (d.fecha_ultimo_envio) {
+      diasDesdeUltimo = (hoy - new Date(d.fecha_ultimo_envio)) / (1000 * 60 * 60 * 24);
     }
-    out.push({ lead: d, campana, toqueActual: siguienteToque });
+
+    let elegido = null;
+    for (const t of campana.campana_toques) {
+      if (enviados.has(t.id)) continue;
+      if (diasDesdeUltimo < t.espera_dias) continue;
+      if (t.condicion === 'no_abierto_anterior' && abierto) continue;
+      if (t.condicion === 'abierto_no_respondido_anterior' && (!abierto || respondido)) continue;
+      elegido = t;
+      break;
+    }
+    if (elegido) out.push({ lead: d, campana, toqueActual: elegido });
   }
   return out;
+}
+
+function construirHtmlConPixel(cuerpoHtml, leadId, toqueId) {
+  const pixelUrl = `${SUPABASE_URL}/functions/v1/track-open?lead=${leadId}&toque=${toqueId}`;
+  return cuerpoHtml + `<img src="${pixelUrl}" width="1" height="1" style="display:none" alt="">`;
 }
 
 async function main() {
@@ -137,18 +153,21 @@ async function main() {
   try {
     for (const { lead, toqueActual } of pendientes) {
       const subject = rellenarPlantilla(toqueActual.asunto, lead);
-      const body = rellenarPlantilla(toqueActual.cuerpo, lead);
+      const cuerpoHtml = rellenarPlantilla(toqueActual.cuerpo, lead);
+      const htmlConPixel = construirHtmlConPixel(cuerpoHtml, lead.id, toqueActual.id);
       try {
         await transporter.sendMail({
           from: `"Ignacio - Klyrex" <${GMAIL_FROM_ADDRESS}>`,
           to: lead.email,
           subject,
-          text: body
+          html: htmlConPixel
         });
         const toque = Number(lead.toque || 0);
+        const toquesEnviados = [...(lead.toques_enviados || []), toqueActual.id];
         await actualizarLead(lead.id, {
           estado: 'Contactado',
           toque: toque + 1,
+          toques_enviados: toquesEnviados,
           fecha_ultimo_envio: new Date().toISOString().slice(0, 10)
         });
         console.log(`Enviado a ${lead.email} (${lead.nombre}) - toque ${toque + 1}`);
