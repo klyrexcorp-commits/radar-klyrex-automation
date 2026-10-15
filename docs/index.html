@@ -402,6 +402,7 @@
       <div class="top-actions" id="topActions">
         <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
         <div class="tabs" id="segTabs"></div>
+        <select id="provinciaFilter"><option value="todas">Todas las provincias</option></select>
         <button class="btn" id="btnImport">⇪ Importar de Sheets</button>
         <button class="btn primary" id="btnNew">+ Nuevo lead</button>
       </div>
@@ -450,8 +451,10 @@
   var leads = [];
   var campanas = [];
   var currentSeg = 'todos';
+  var currentProvincia = 'todas';
   var searchQuery = '';
   var currentMainTab = 'hub';
+  var selectedIds = new Set();
 
   function campanaById(id){ return campanas.find(function(c){return c.id===id;}); }
   function campaignColor(campana){
@@ -530,6 +533,12 @@
   }
   function deleteLead(id){
     return sb('leads?id=eq.'+id, {method:'DELETE'}).then(fetchLeads);
+  }
+  function updateLeadsBulk(ids, patch){
+    patch.updated_at = new Date().toISOString();
+    var filter = 'id=in.(' + ids.join(',') + ')';
+    return sb('leads?' + filter, {method:'PATCH', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(patch)})
+      .then(fetchLeads);
   }
 
   // ---- Campañas (Supabase) ----
@@ -662,40 +671,96 @@
 
   function renderContactos(){
     var list = filtered();
+    var visibleIds = list.map(function(l){return String(l.id);});
+    Array.from(selectedIds).forEach(function(id){ if(visibleIds.indexOf(id)===-1) selectedIds.delete(id); });
+
     if(list.length === 0){
       elContactos.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No hay contactos que coincidan</div></div>';
       return;
     }
     var rows = list.map(function(l){
+      var checked = selectedIds.has(String(l.id)) ? ' checked' : '';
       return '<tr data-id="'+l.id+'">' +
+        '<td><input type="checkbox" class="row-select" data-select-id="'+l.id+'"'+checked+'></td>' +
         '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
         '<td>'+campChipHtml(l.campana_id)+'</td>' +
         '<td>'+esc(l.contacto)+'</td>' +
         '<td>'+esc(l.telefono)+'</td>' +
         '<td>'+esc(l.email)+'</td>' +
         '<td>'+esc(l.ciudad)+'</td>' +
+        '<td>'+esc(l.provincia)+'</td>' +
         '<td>'+esc(statusLabel(norm(l.estado)))+'</td>' +
         '<td class="tabular">'+(l.toque||0)+'</td>' +
         '<td class="tabular">'+(l.score!=null?l.score:'')+'</td>' +
       '</tr>';
     }).join('');
-    elContactos.innerHTML =
-      '<div style="display:flex;justify-content:flex-end;margin-bottom:10px">'+
-        '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
-      '</div>'+
+    var allChecked = selectedIds.size>0 && list.every(function(l){return selectedIds.has(String(l.id));});
+    var barHtml = selectedIds.size>0 ?
+      ('<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;background:var(--accent-bg);border:1px solid rgba(227,166,63,.25);border-radius:10px;padding:8px 12px">'+
+        '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
+        '<div style="display:flex;gap:8px;align-items:center">'+
+          '<select id="bulkCampanaSelect" class="sm">'+
+            '<option value="">Mover a campaña…</option>'+
+            '<option value="__ninguna__">Sin campaña</option>'+
+            campanas.map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
+          '</select>'+
+          '<button class="btn sm primary" id="btnBulkMove">Mover</button>'+
+          '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
+        '</div>'+
+      '</div>')
+      : '<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button></div>';
+
+    elContactos.innerHTML = barHtml +
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Estado</th><th>Toque</th><th>Score</th>'+
+        '<th><input type="checkbox" id="selectAllRows"'+(allChecked?' checked':'')+'></th>'+
+        '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Provincia</th><th>Estado</th><th>Toque</th><th>Score</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+
     elContactos.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
-      tr.addEventListener('click', function(){ openDetail(tr.getAttribute('data-id')); });
+      tr.addEventListener('click', function(e){
+        if(e.target.closest('input')) return;
+        openDetail(tr.getAttribute('data-id'));
+      });
+    });
+    elContactos.querySelectorAll('.row-select').forEach(function(cb){
+      cb.addEventListener('click', function(e){ e.stopPropagation(); });
+      cb.addEventListener('change', function(){
+        var id = cb.getAttribute('data-select-id');
+        if(cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+        renderContactos();
+      });
+    });
+    var selectAll = document.getElementById('selectAllRows');
+    if(selectAll) selectAll.addEventListener('change', function(){
+      if(selectAll.checked) visibleIds.forEach(function(id){selectedIds.add(id);});
+      else visibleIds.forEach(function(id){selectedIds.delete(id);});
+      renderContactos();
     });
     var exportBtn = document.getElementById('btnExportCsv');
     if(exportBtn) exportBtn.addEventListener('click', exportCsv);
+    var btnBulkClear = document.getElementById('btnBulkClear');
+    if(btnBulkClear) btnBulkClear.addEventListener('click', function(){ selectedIds.clear(); renderContactos(); });
+    var btnBulkMove = document.getElementById('btnBulkMove');
+    if(btnBulkMove) btnBulkMove.addEventListener('click', function(){
+      var sel = document.getElementById('bulkCampanaSelect');
+      var val = sel.value;
+      if(!val) return;
+      var ids = Array.from(selectedIds);
+      var patch = val==='__ninguna__' ? {campana_id:null, toque:0, fecha_ultimo_envio:null} : {campana_id:val, toque:0, fecha_ultimo_envio:null};
+      btnBulkMove.disabled = true; btnBulkMove.textContent = 'Moviendo…';
+      updateLeadsBulk(ids, patch).then(function(){
+        selectedIds.clear();
+      }).catch(function(e){
+        alert('Error al mover: '+e.message);
+      }).finally(function(){
+        btnBulkMove.disabled = false; btnBulkMove.textContent = 'Mover';
+      });
+    });
   }
 
   function exportCsv(){
     var list = filtered();
-    var headers = ['nombre','campana_id','contacto','telefono','email','ciudad','estado','toque','score','origen','notas'];
+    var headers = ['nombre','campana_id','contacto','telefono','email','ciudad','provincia','estado','toque','score','origen','notas'];
     var lines = [headers.join(',')];
     list.forEach(function(l){
       var row = headers.map(function(h){
@@ -961,6 +1026,7 @@
   function render(){
     renderStats();
     renderSegTabs();
+    renderProvinciaFilter();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
@@ -991,12 +1057,25 @@
     el.innerHTML = html;
   }
 
+  function renderProvinciaFilter(){
+    var el = document.getElementById('provinciaFilter');
+    if(!el) return;
+    var provincias = Array.from(new Set(leads.map(function(l){return (l.provincia||'').trim();}).filter(Boolean))).sort(function(a,b){return a.localeCompare(b,'es');});
+    var html = '<option value="todas">Todas las provincias</option>';
+    html += provincias.map(function(p){
+      return '<option value="'+esc(p)+'"'+(currentProvincia===p?' selected':'')+'>'+esc(p)+'</option>';
+    }).join('');
+    el.innerHTML = html;
+    el.value = currentProvincia;
+  }
+
   function filtered(){
     var q = searchQuery.trim().toLowerCase();
     return leads.filter(function(l){
       if(currentSeg!=='todos' && String(l.campana_id)!==String(currentSeg)) return false;
+      if(currentProvincia!=='todas' && (l.provincia||'').trim()!==currentProvincia) return false;
       if(!q) return true;
-      var hay = [l.nombre,l.contacto,l.email,l.telefono,l.ciudad].join(' ').toLowerCase();
+      var hay = [l.nombre,l.contacto,l.email,l.telefono,l.ciudad,l.provincia].join(' ').toLowerCase();
       return hay.indexOf(q) !== -1;
     });
   }
@@ -1120,6 +1199,9 @@
         '<div class="field"><label>Ciudad</label><input type="text" id="f_city" value="'+esc(l.ciudad)+'"></div>'+
       '</div>'+
       '<div class="field-row">'+
+        '<div class="field"><label>Provincia</label><input type="text" id="f_provincia" value="'+esc(l.provincia)+'"></div>'+
+      '</div>'+
+      '<div class="field-row">'+
         '<div class="field"><label>Teléfono</label><input type="tel" id="f_phone" value="'+esc(l.telefono)+'"></div>'+
         '<div class="field"><label>Email</label><input type="email" id="f_email" value="'+esc(l.email)+'"></div>'+
       '</div>'+
@@ -1175,6 +1257,7 @@
       campana_id: campEl && campEl.value ? campEl.value : null,
       contacto: document.getElementById('f_contact').value.trim(),
       ciudad: document.getElementById('f_city').value.trim(),
+      provincia: document.getElementById('f_provincia').value.trim(),
       telefono: document.getElementById('f_phone').value.trim(),
       email: document.getElementById('f_email').value.trim(),
       origen: document.getElementById('f_source').value,
@@ -1213,6 +1296,7 @@
     {key:'telefono', label:'Teléfono', aliases:['telefono','phone','tel','movil']},
     {key:'email', label:'Email', aliases:['email','correo','mail','e-mail']},
     {key:'ciudad', label:'Ciudad', aliases:['ciudad','city','localidad','poblacion']},
+    {key:'provincia', label:'Provincia', aliases:['provincia','province','state','region']},
     {key:'notas', label:'Notas', aliases:['notas','notes','comentarios','observaciones']}
   ];
   var importData = null;
@@ -1402,6 +1486,11 @@
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
   });
+  document.getElementById('provinciaFilter').addEventListener('change', function(e){
+    currentProvincia = e.target.value;
+    if(currentMainTab === 'pipeline') renderBoard();
+    if(currentMainTab === 'contactos') renderContactos();
+  });
   document.getElementById('sidebarBrand').addEventListener('click', function(){ goTo('hub'); });
   elOverlay.addEventListener('click', function(e){ if(e.target===elOverlay) closeModal(); });
   document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !elOverlay.hidden) closeModal(); });
@@ -1442,6 +1531,7 @@
 
     renderStats();
     renderSegTabs();
+    renderProvinciaFilter();
     if(currentMainTab === 'pipeline') renderBoard();
     if(currentMainTab === 'contactos') renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
