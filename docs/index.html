@@ -962,23 +962,55 @@
     if(btnNew) btnNew.addEventListener('click', openNewCampana);
   }
 
+  var TOQUE_TEMPLATES = [
+    {espera:0, asunto:'Una idea rápida para {negocio}', cuerpo:'Hola {contacto},\n\nHe visto {negocio} en {ciudad} y creo que podemos ayudaros a conseguir más clientes sin complicaros la vida.\n\n¿Tenéis 15 minutos esta semana para comentarlo?\n\nUn saludo,\nIgnacio'},
+    {espera:4, asunto:'Re: Una idea rápida para {negocio}', cuerpo:'Hola {contacto},\n\nTe escribía hace unos días por si te había pillado liado/a. Sigo pensando que podría interesaros.\n\n¿Te viene bien una llamada corta esta semana?\n\nUn saludo,\nIgnacio'},
+    {espera:7, asunto:'Última idea para {negocio}', cuerpo:'Hola {contacto},\n\nNo quiero insistir más de la cuenta, así que este es mi último mensaje por ahora. Si en algún momento os interesa, aquí estaré.\n\nUn saludo,\nIgnacio'},
+    {espera:10, asunto:'¿Seguimos en contacto, {negocio}?', cuerpo:'Hola {contacto},\n\nSi surge algo en el futuro, no dudéis en escribirme. Os dejo mi contacto por si acaso.\n\nUn saludo,\nIgnacio'},
+    {espera:14, asunto:'Cierro el contacto por ahora', cuerpo:'Hola {contacto},\n\nDejo de insistir, pero la puerta queda abierta cuando os venga bien.\n\nUn saludo,\nIgnacio'}
+  ];
+
   function openNewCampana(){
     elModal.innerHTML =
       '<h2>Nueva campaña</h2>'+
-      '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios — oferta verano"></div>'+
+      '<div class="field-row">'+
+        '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios — oferta verano"></div>'+
+        '<div class="field"><label>Toques en la secuencia</label>'+
+          '<select id="nc_toques">'+
+            '<option value="1">1 — un solo email</option>'+
+            '<option value="2">2 — email + recordatorio</option>'+
+            '<option value="3" selected>3 — recomendado</option>'+
+            '<option value="4">4</option>'+
+            '<option value="5">5</option>'+
+          '</select>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.6;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px">'+
+        'Se crea ya con una secuencia de ejemplo escrita, lista para editar. Variables que se rellenan solas: '+
+        '<span class="mono" style="color:var(--accent-strong)">{negocio}</span> '+
+        '<span class="mono" style="color:var(--accent-strong)">{contacto}</span> '+
+        '<span class="mono" style="color:var(--accent-strong)">{ciudad}</span>'+
+      '</div>'+
       '<div class="modal-actions">'+
         '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
         '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNewCampana()">Crear campaña</button></div>'+
       '</div>';
     elOverlay.hidden = false;
+    var nameInput = document.getElementById('nc_nombre');
+    if(nameInput) nameInput.focus();
   }
   function saveNewCampana(){
     var input = document.getElementById('nc_nombre');
     var nombre = input.value.trim();
     if(!nombre) return;
+    var numToques = Math.max(1, Math.min(TOQUE_TEMPLATES.length, Number(document.getElementById('nc_toques').value)||3));
     closeModal();
     createCampana({nombre: nombre, segmento: 'general', activa: true}).then(function(nueva){
-      if(nueva) createToque({campana_id: nueva.id, orden:0, espera_dias:0, asunto:'Asunto del primer email', cuerpo:'Hola {contacto},\n\n'});
+      if(!nueva) return;
+      for(var i=0;i<numToques;i++){
+        var tpl = TOQUE_TEMPLATES[i];
+        createToque({campana_id: nueva.id, orden:i, espera_dias: tpl.espera, asunto: tpl.asunto, cuerpo: tpl.cuerpo});
+      }
     });
   }
 
