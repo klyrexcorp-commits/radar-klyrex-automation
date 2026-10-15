@@ -213,7 +213,12 @@
   .col-head{ padding:11px 13px 9px; display:flex; align-items:center; justify-content:space-between; font-weight:600; font-size:13px; border-bottom:1px solid var(--border); }
   .col-head.ok span:first-child{color:var(--ok)}
   .col-head.crit span:first-child{color:var(--crit)}
+  .col-head .head-stats{display:flex; align-items:center; gap:5px}
   .col-head .count{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:99px; padding:1px 8px; }
+  .col-head .avg-score{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:700; border-radius:99px; padding:1px 8px; }
+  .col-head .avg-score.hi{background:var(--ok-bg); color:var(--ok)}
+  .col-head .avg-score.mid{background:var(--accent-bg); color:var(--accent-strong)}
+  .col-head .avg-score.lo{background:var(--surface); color:var(--text-dim); border:1px solid var(--border)}
   .col-body{padding:9px; display:flex; flex-direction:column; gap:9px; overflow-y:auto}
   .col.dragover{outline:2px dashed var(--accent); outline-offset:-2px}
   .col-empty{color:var(--text-dim); font-size:12px; text-align:center; padding:18px 6px}
@@ -224,16 +229,21 @@
     display:flex; flex-direction:column; gap:7px; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
   .card:hover{border-color:var(--text-dim); transform:translateY(-1px)}
-  .card-top{display:flex; justify-content:space-between; gap:8px; align-items:center}
-  .card-name{font-weight:600; font-size:13.5px; line-height:1.25}
-  .score-ring{ width:32px; height:32px; flex:none; border-radius:50%; background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0); display:flex; align-items:center; justify-content:center; }
-  .score-ring-inner{ width:23px; height:23px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--text); }
+  .card-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start}
+  .card-name{font-weight:700; font-size:14.5px; line-height:1.25; color:var(--text)}
+  .score-ring{ width:30px; height:30px; flex:none; border-radius:50%; background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--surface-2) 0); display:flex; align-items:center; justify-content:center; }
+  .score-ring-inner{ width:22px; height:22px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:700; color:var(--text); }
   .chips{display:flex; gap:6px; flex-wrap:wrap}
   .chip{ font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px; letter-spacing:.02em; }
   .chip.auto{background:var(--seg-auto-bg); color:var(--seg-auto)}
   .chip.web{background:var(--seg-web-bg); color:var(--seg-web)}
   .chip.toque{background:var(--surface-2); color:var(--text-dim)}
-  .card-meta{font-size:11.5px; color:var(--text-dim); display:flex; flex-direction:column; gap:2px}
+  .card-sub{display:flex; align-items:center; gap:8px; font-size:11px; min-width:0}
+  .card-sub .camp-tag{display:inline-flex; align-items:center; gap:5px; font-weight:600; color:var(--text-dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .card-sub .camp-tag i{width:7px; height:7px; border-radius:50%; display:inline-block; flex:none}
+  .card-sub .toque-badge{flex:none; font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:700; background:var(--surface-2); color:var(--text-dim); border-radius:99px; padding:1px 7px}
+  .card-meta{font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+  .card-meta .dot-sep{color:var(--border)}
   .card select.status-quick{ width:100%; font-size:11.5px; padding:4px 7px; margin-top:2px; }
 
   .empty-state{ text-align:center; padding:60px 20px; color:var(--text-dim); border:1px dashed var(--border); border-radius:14px; display:flex; flex-direction:column; align-items:center; gap:12px; }
@@ -1127,8 +1137,11 @@
     STATUSES.forEach(function(st){
       var items = list.filter(function(l){return norm(l.estado)===st.key;});
       var headClass = st.key==='ganado' ? ' ok' : st.key==='perdido' ? ' crit' : '';
+      var withScore = items.filter(function(l){return l.score!=null;});
+      var avgScore = withScore.length ? Math.round(withScore.reduce(function(s,l){return s+Number(l.score||0);},0)/withScore.length) : null;
+      var avgBadge = avgScore!=null ? '<span class="avg-score '+scoreClass(avgScore)+'" title="Score medio de esta fase">Ø '+avgScore+'</span>' : '';
       html += '<div class="col" data-status="'+st.key+'">';
-      html += '<div class="col-head'+headClass+'"><span>'+st.label+'</span><span class="count tabular">'+items.length+'</span></div>';
+      html += '<div class="col-head'+headClass+'"><span>'+st.label+'</span><span class="head-stats">'+avgBadge+'<span class="count tabular">'+items.length+'</span></span></div>';
       html += '<div class="col-body">';
       if(items.length===0){
         html += '<div class="col-empty">Sin leads</div>';
@@ -1153,27 +1166,35 @@
     );
   }
 
+  function campTagHtml(campId){
+    var c = campanaById(campId);
+    if(!c) return '<span class="camp-tag"><i style="background:var(--text-dim)"></i>Sin campaña</span>';
+    var color = campaignColor(c);
+    return '<span class="camp-tag" title="'+esc(c.nombre)+'"><i style="background:'+color+'"></i>'+esc(c.nombre)+'</span>';
+  }
+
   function cardHtml(l){
     var camp = campanaById(l.campana_id);
     var borderColor = camp ? campaignColor(camp) : 'var(--border)';
     var optHtml = STATUSES.map(function(s){
       return '<option value="'+s.key+'"'+(s.key===norm(l.estado)?' selected':'')+'>'+s.label+'</option>';
     }).join('');
-    var toqueChip = (l.toque!=null && l.toque>0) ? '<span class="chip toque">Toque '+l.toque+'</span>' : '';
+    var toqueBadge = (l.toque!=null && l.toque>0) ? '<span class="toque-badge" title="Toque '+l.toque+' de la secuencia">T'+l.toque+'</span>' : '';
+    var metaParts = [];
+    if(l.ciudad) metaParts.push('<span>'+esc(l.ciudad)+'</span>');
+    if(l.contacto) metaParts.push('<span>'+esc(l.contacto)+'</span>');
+    var metaHtml = metaParts.join('<span class="dot-sep">·</span>');
     return (
       '<div class="card" draggable="true" data-id="'+l.id+'" style="border-left-color:'+borderColor+'">'+
         '<div class="card-top">'+
           '<div class="card-name">'+esc(l.nombre)+'</div>'+
           scoreRingHtml(l.score)+
         '</div>'+
-        '<div class="chips">'+
-          campChipHtml(l.campana_id)+
-          toqueChip+
+        '<div class="card-sub">'+
+          campTagHtml(l.campana_id)+
+          toqueBadge+
         '</div>'+
-        '<div class="card-meta">'+
-          (l.contacto ? '<span>'+esc(l.contacto)+'</span>' : '')+
-          (l.ciudad ? '<span>'+esc(l.ciudad)+'</span>' : '')+
-        '</div>'+
+        (metaHtml ? '<div class="card-meta">'+metaHtml+'</div>' : '')+
         '<select class="status-quick mono" data-id="'+l.id+'">'+optHtml+'</select>'+
       '</div>'
     );
