@@ -614,7 +614,12 @@
   function fetchRuns(){
     return gh('/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/actions/workflows/'+GITHUB_WORKFLOW+'/runs?per_page=8')
       .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
-      .catch(function(e){ flujoError = e.message; renderFlujo(); });
+      .catch(function(e){
+        flujoError = /rate limit/i.test(e.message)
+          ? 'GitHub ha limitado temporalmente las consultas públicas desde esta red (máx. 60/hora sin iniciar sesión). El historial de ejecuciones se recupera solo en unos minutos — no afecta a los envíos de email.'
+          : e.message;
+        renderFlujo();
+      });
   }
   function statusInfo(run){
     if(run.status !== 'completed'){
@@ -1633,7 +1638,7 @@
     if(currentMainTab === 'flujo'){
       renderFlujo();
       fetchRuns();
-      flujoPollTimer = setInterval(fetchRuns, 15000);
+      flujoPollTimer = setInterval(fetchRuns, 120000);
     }
   }
 
