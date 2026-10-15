@@ -251,6 +251,7 @@
   .overlay{ position:fixed; inset:0; background:rgba(10,13,18,.5); display:flex; align-items:center; justify-content:center; padding:20px; z-index:50; }
   .overlay[hidden]{ display:none; }
   .modal{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px; }
+  .modal.wide{max-width:640px}
   .modal h2{font-size:18px; margin:0}
   .field{display:flex; flex-direction:column; gap:4px}
   .field label{font-size:11.5px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em}
@@ -292,7 +293,17 @@
 
   /* Campañas */
   .camp-toolbar{display:flex; justify-content:flex-end; margin-bottom:16px}
-  .camp-list{display:flex; flex-direction:column; gap:16px}
+  .camp-list{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px}
+  .camp-pipe-card{background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--camp-color, var(--border)); border-radius:12px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:9px; transition:transform .12s ease, border-color .12s ease}
+  .camp-pipe-card:hover{border-color:var(--text-dim); transform:translateY(-1px)}
+  .camp-pipe-card.paused{opacity:.6}
+  .camp-pipe-head{display:flex; align-items:center; gap:8px}
+  .camp-pipe-name{font-family:"Sora",sans-serif; font-weight:700; font-size:14.5px; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .camp-pipe-stats{font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+  .camp-pipe-funnel{display:flex; gap:6px; flex-wrap:wrap}
+  .pf-chip{font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:99px; background:var(--surface-2); color:var(--text-dim)}
+  .pf-chip.ok{background:var(--ok-bg); color:var(--ok)}
+  .pf-chip.crit{background:var(--crit-bg); color:var(--crit)}
   .camp-card{background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--camp-color, var(--border)); border-radius:12px; padding:18px}
   .camp-card.paused{opacity:.6}
   .camp-card-head{display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap}
@@ -945,8 +956,7 @@
     '</div>';
   }
 
-  function campanaCardHtml(campana){
-    var color = campaignColor(campana);
+  function campanaStats(campana){
     var toques = campana.campana_toques;
     var campLeads = leads.filter(function(l){ return l.campana_id===campana.id; });
     var porToque = [];
@@ -959,25 +969,29 @@
       var t = Math.min(toques.length, Math.max(0, Number(l.toque||0)));
       porToque[t]++;
     });
-    var max = Math.max.apply(null, porToque.concat([1]));
-    var funnelHtml = toques.map(function(t,i){
-      return funnelRowHtml(i===0 ? 'Pendiente' : 'Tras toque '+i, porToque[i], max, color);
-    }).join('') + funnelRowHtml('Secuencia completa', porToque[toques.length], max, color);
+    var enCurso = campLeads.length - respondidos - bajas;
+    return {campLeads:campLeads, porToque:porToque, respondidos:respondidos, bajas:bajas, enCurso:enCurso};
+  }
 
-    return '<div class="camp-card'+(campana.activa?'':' paused')+'" style="--camp-color:'+color+'" data-camp-id="'+campana.id+'">'+
-      '<div class="camp-card-head">'+
+  function campanaCardHtml(campana){
+    var color = campaignColor(campana);
+    var toques = campana.campana_toques;
+    var s = campanaStats(campana);
+    return '<div class="camp-pipe-card'+(campana.activa?'':' paused')+'" style="--camp-color:'+color+'" data-camp-id="'+campana.id+'" data-camp-open="'+campana.id+'">'+
+      '<div class="camp-pipe-head">'+
         '<span class="camp-dot" style="background:'+color+'"></span>'+
-        '<input class="camp-name-input" data-camp-name="'+campana.id+'" value="'+esc(campana.nombre)+'">'+
+        '<span class="camp-pipe-name">'+esc(campana.nombre)+'</span>'+
         '<div class="camp-card-actions">'+
           '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
           '<button class="btn sm danger" data-camp-delete="'+campana.id+'" title="Eliminar campaña">✕</button>'+
         '</div>'+
       '</div>'+
-      '<div class="camp-sub">'+campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
-      funnelHtml+
-      '<div class="camp-foot"><span>Respondidos: <b>'+respondidos+'</b></span><span>Bajas: <b>'+bajas+'</b></span></div>'+
-      '<div class="toque-list">'+toques.map(toqueCardHtml).join('')+'</div>'+
-      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ Añadir toque</button>'+
+      '<div class="camp-pipe-stats">'+s.campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      '<div class="camp-pipe-funnel">'+
+        '<span class="pf-chip ok">'+s.respondidos+' respondidos</span>'+
+        '<span class="pf-chip">'+s.enCurso+' en curso</span>'+
+        '<span class="pf-chip crit">'+s.bajas+' bajas</span>'+
+      '</div>'+
     '</div>';
   }
 
@@ -991,6 +1005,38 @@
     elCampanas.innerHTML = html;
     var btnNew = document.getElementById('btnNewCampana');
     if(btnNew) btnNew.addEventListener('click', openNewCampana);
+  }
+
+  function openCampanaConfig(campId){
+    var campana = campanaById(campId);
+    if(!campana) return;
+    var color = campaignColor(campana);
+    var toques = campana.campana_toques;
+    var s = campanaStats(campana);
+    var max = Math.max.apply(null, s.porToque.concat([1]));
+    var funnelHtml = toques.map(function(t,i){
+      return funnelRowHtml(i===0 ? 'Pendiente' : 'Tras toque '+i, s.porToque[i], max, color);
+    }).join('') + funnelRowHtml('Secuencia completa', s.porToque[toques.length], max, color);
+
+    elModal.classList.add('wide');
+    elModal.innerHTML =
+      '<div class="camp-card-head" style="margin-bottom:0">'+
+        '<span class="camp-dot" style="background:'+color+'"></span>'+
+        '<input class="camp-name-input" style="font-size:17px" data-camp-name="'+campana.id+'" value="'+esc(campana.nombre)+'">'+
+        '<div class="camp-card-actions">'+
+          '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle-modal="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="camp-sub">'+s.campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      funnelHtml+
+      '<div class="camp-foot"><span>Respondidos: <b>'+s.respondidos+'</b></span><span>Bajas: <b>'+s.bajas+'</b></span></div>'+
+      '<div class="toque-list">'+toques.map(toqueCardHtml).join('')+'</div>'+
+      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ Añadir toque</button>'+
+      '<div class="modal-actions">'+
+        '<button class="btn danger" data-camp-delete-modal="'+campana.id+'">Eliminar campaña</button>'+
+        '<div class="right"><button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cerrar</button></div>'+
+      '</div>';
+    elOverlay.hidden = false;
   }
 
   var TOQUE_TEMPLATES = [
@@ -1059,24 +1105,50 @@
       }
       return;
     }
+    var openCamp = e.target.closest('[data-camp-open]');
+    if(openCamp){
+      openCampanaConfig(openCamp.getAttribute('data-camp-open'));
+      return;
+    }
+  });
+
+  elModal.addEventListener('click', function(e){
+    var toggleModal = e.target.closest('[data-camp-toggle-modal]');
+    if(toggleModal){
+      var campId0 = toggleModal.getAttribute('data-camp-toggle-modal');
+      var camp0 = campanaById(campId0);
+      if(camp0) updateCampana(camp0.id, {activa: !camp0.activa}).then(function(){ openCampanaConfig(campId0); });
+      return;
+    }
+    var delCampModal = e.target.closest('[data-camp-delete-modal]');
+    if(delCampModal){
+      if(confirm('¿Eliminar esta campaña y todos sus toques? Los leads asignados se quedarán sin campaña.')){
+        deleteCampana(delCampModal.getAttribute('data-camp-delete-modal')).then(closeModal);
+      }
+      return;
+    }
     var addToque = e.target.closest('[data-camp-add-toque]');
     if(addToque){
       var campId = addToque.getAttribute('data-camp-add-toque');
       var camp = campanaById(campId);
       var orden = camp ? camp.campana_toques.length : 0;
-      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, condicion:'siempre', asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},<br><br>'});
+      createToque({campana_id: campId, orden: orden, espera_dias: orden===0?0:4, condicion:'siempre', asunto:'Asunto del toque '+(orden+1), cuerpo:'Hola {contacto},<br><br>'}).then(function(){ openCampanaConfig(campId); });
       return;
     }
     var delToque = e.target.closest('[data-toque-delete]');
     if(delToque){
-      if(confirm('¿Eliminar este toque de la secuencia?')) deleteToque(delToque.getAttribute('data-toque-delete'));
+      if(confirm('¿Eliminar este toque de la secuencia?')){
+        var campNameEl = elModal.querySelector('[data-camp-name]');
+        var campId2 = campNameEl ? campNameEl.getAttribute('data-camp-name') : null;
+        deleteToque(delToque.getAttribute('data-toque-delete')).then(function(){ if(campId2) openCampanaConfig(campId2); });
+      }
       return;
     }
     var rteBtn = e.target.closest('[data-rte-cmd]');
     if(rteBtn){
       var cmd = rteBtn.getAttribute('data-rte-cmd');
       var targetId = rteBtn.getAttribute('data-rte-target');
-      var editor = elCampanas.querySelector('.toque-body-rich[data-toque-body="'+targetId+'"]');
+      var editor = elModal.querySelector('.toque-body-rich[data-toque-body="'+targetId+'"]');
       if(!editor) return;
       editor.focus();
       if(cmd==='createLink'){
@@ -1092,14 +1164,14 @@
       return;
     }
   });
-  elCampanas.addEventListener('change', function(e){
+  elModal.addEventListener('change', function(e){
     var t = e.target;
     if(t.matches('[data-camp-name]')){ updateCampana(t.getAttribute('data-camp-name'), {nombre: t.value.trim()||'Sin nombre'}); return; }
     if(t.matches('[data-toque-wait]')){ updateToque(t.getAttribute('data-toque-wait'), {espera_dias: Math.max(0, Number(t.value)||0)}); return; }
     if(t.matches('[data-toque-subject]')){ updateToque(t.getAttribute('data-toque-subject'), {asunto: t.value}); return; }
     if(t.matches('[data-toque-condicion]')){ updateToque(t.getAttribute('data-toque-condicion'), {condicion: t.value}); return; }
   });
-  elCampanas.addEventListener('blur', function(e){
+  elModal.addEventListener('blur', function(e){
     var t = e.target;
     if(t.matches && t.matches('.toque-body-rich[data-toque-body]')){
       updateToque(t.getAttribute('data-toque-body'), {cuerpo: t.innerHTML});
@@ -1456,7 +1528,7 @@
     elOverlay.hidden = false;
   }
 
-  function closeModal(){ elOverlay.hidden = true; }
+  function closeModal(){ elOverlay.hidden = true; elModal.classList.remove('wide'); }
 
   function readForm(){
     var campEl = document.getElementById('f_campana');
