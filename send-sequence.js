@@ -5,12 +5,17 @@ const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 const GMAIL_FROM_ADDRESS = process.env.GMAIL_FROM_ADDRESS || GMAIL_USER;
+const DELAY_MS = Number(process.env.DELAY_MS || 24000);
 
 for (const [name, value] of Object.entries({ SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD })) {
   if (!value) {
     console.error(`Falta la variable de entorno ${name}`);
     process.exit(1);
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function leerCampanas() {
@@ -62,6 +67,22 @@ async function actualizarLead(id, patch) {
   }
 }
 
+async function actualizarEnvioEstado(patch) {
+  const body = { ...patch, actualizado_en: new Date().toISOString() };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/envio_estado?id=eq.global`, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_SECRET_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    console.error(`Aviso: no se pudo actualizar envio_estado: HTTP ${res.status} - ${await res.text()}`);
+  }
+}
+
 function rellenarPlantilla(texto, lead) {
   return String(texto || '')
     .replace(/\{negocio\}/g, lead.nombre || 'tu negocio')
@@ -103,28 +124,45 @@ async function main() {
 
   const todos = await leerLeadsPendientes();
   const pendientes = elegibles(todos, campanasPorId);
-  console.log(`Leads totales no cerrados con campaña: ${todos.length}. Pendientes de envío hoy: ${pendientes.length}.`);
+  console.log(`Leads totales no cerrados con campaña: ${todos.length}. Pendientes de envío hoy: ${pendientes.length}. Pausa entre envíos: ${DELAY_MS / 1000}s.`);
 
-  for (const { lead, toqueActual } of pendientes) {
-    const subject = rellenarPlantilla(toqueActual.asunto, lead);
-    const body = rellenarPlantilla(toqueActual.cuerpo, lead);
-    try {
-      await transporter.sendMail({
-        from: `"Ignacio - Klyrex" <${GMAIL_FROM_ADDRESS}>`,
-        to: lead.email,
-        subject,
-        text: body
-      });
-      const toque = Number(lead.toque || 0);
-      await actualizarLead(lead.id, {
-        estado: 'Contactado',
-        toque: toque + 1,
-        fecha_ultimo_envio: new Date().toISOString().slice(0, 10)
-      });
-      console.log(`Enviado a ${lead.email} (${lead.nombre}) - toque ${toque + 1}`);
-    } catch (err) {
-      console.error(`Fallo con ${lead.email} (${lead.nombre}):`, err.message);
+  await actualizarEnvioEstado({
+    en_curso: true,
+    enviados: 0,
+    total: pendientes.length,
+    iniciado_en: new Date().toISOString()
+  });
+
+  let enviados = 0;
+  try {
+    for (const { lead, toqueActual } of pendientes) {
+      const subject = rellenarPlantilla(toqueActual.asunto, lead);
+      const body = rellenarPlantilla(toqueActual.cuerpo, lead);
+      try {
+        await transporter.sendMail({
+          from: `"Ignacio - Klyrex" <${GMAIL_FROM_ADDRESS}>`,
+          to: lead.email,
+          subject,
+          text: body
+        });
+        const toque = Number(lead.toque || 0);
+        await actualizarLead(lead.id, {
+          estado: 'Contactado',
+          toque: toque + 1,
+          fecha_ultimo_envio: new Date().toISOString().slice(0, 10)
+        });
+        console.log(`Enviado a ${lead.email} (${lead.nombre}) - toque ${toque + 1}`);
+      } catch (err) {
+        console.error(`Fallo con ${lead.email} (${lead.nombre}):`, err.message);
+      }
+      enviados++;
+      await actualizarEnvioEstado({ enviados });
+      if (enviados < pendientes.length) {
+        await sleep(DELAY_MS);
+      }
     }
+  } finally {
+    await actualizarEnvioEstado({ en_curso: false });
   }
 }
 
