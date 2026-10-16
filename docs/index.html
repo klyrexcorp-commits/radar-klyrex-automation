@@ -877,7 +877,10 @@
       '</div>')
       : ('<div class="contactos-bar" style="'+barBoxStyle+'var(--border);background:var(--bg)">'+
           '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayúsculas+clic para seleccionar un rango.</span>'+
-          '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+          '<div style="display:flex;gap:8px;align-items:center">'+
+            '<button class="btn sm" id="btnVerifyEmails" title="Comprueba si el dominio de cada email existe y puede recibir correo">🔍 Verificar emails</button>'+
+            '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
+          '</div>'+
         '</div>');
     var barEl = document.getElementById('contactosBar');
     if(!barEl) return;
@@ -893,6 +896,8 @@
 
     var exportBtn = document.getElementById('btnExportCsv');
     if(exportBtn) exportBtn.addEventListener('click', exportCsv);
+    var btnVerify = document.getElementById('btnVerifyEmails');
+    if(btnVerify) btnVerify.addEventListener('click', function(){ verifyEmails(btnVerify); });
     var btnBulkClear = document.getElementById('btnBulkClear');
     if(btnBulkClear) btnBulkClear.addEventListener('click', function(){ selectedIds.clear(); syncContactosSelectionUI(visibleIds); });
     var btnBulkMove = document.getElementById('btnBulkMove');
@@ -909,6 +914,65 @@
         alert('Error al mover: '+e.message);
       }).finally(function(){
         btnBulkMove.disabled = false; btnBulkMove.textContent = 'Mover';
+      });
+    });
+  }
+
+  // Comprueba, dominio a dominio, si el servidor de correo existe (vía una
+  // función de Supabase que resuelve registros MX). Los contactos cuyo
+  // dominio no tenga MX se marcan como "Baja" para no volver a intentarles
+  // un envío que acabaría rebotando.
+  function verifyEmails(btn){
+    var candidatos = leads.filter(function(l){ return l.email && norm(l.estado)!=='baja'; });
+    if(candidatos.length===0){ alert('No hay contactos con email para verificar.'); return; }
+    var domains = {};
+    candidatos.forEach(function(l){
+      var d = (l.email.split('@')[1]||'').toLowerCase().trim();
+      if(d){ (domains[d] = domains[d]||[]).push(l.id); }
+    });
+    var domainList = Object.keys(domains);
+    if(!confirm('Se van a comprobar '+domainList.length+' dominios distintos de '+candidatos.length+' contactos.\n\nLos que no tengan un servidor de correo válido se marcarán como "Baja" para no volver a intentarles un envío. ¿Continuar?')) return;
+
+    btn.disabled = true;
+    var done = 0;
+    var invalidDomains = [];
+    function updateProgress(){ btn.textContent = '🔍 Verificando '+done+'/'+domainList.length+'…'; }
+    updateProgress();
+
+    var idx = 0;
+    var CONCURRENCY = 6;
+    function next(){
+      if(idx >= domainList.length) return Promise.resolve();
+      var domain = domainList[idx++];
+      return fetch(SUPABASE_URL + '/functions/v1/validar-dominio?domain=' + encodeURIComponent(domain))
+        .then(function(res){ return res.json(); })
+        .then(function(data){ if(!data.valido) invalidDomains.push(domain); })
+        .catch(function(){ /* si falla la comprobación en sí, no lo marcamos como inválido */ })
+        .finally(function(){ done++; updateProgress(); return next(); });
+    }
+    var workers = [];
+    for(var i=0;i<CONCURRENCY;i++) workers.push(next());
+
+    Promise.all(workers).then(function(){
+      if(invalidDomains.length===0){
+        alert('Comprobados '+domainList.length+' dominios — todos parecen válidos.');
+        btn.disabled = false; btn.textContent = '🔍 Verificar emails';
+        return;
+      }
+      var idsAfectados = [];
+      invalidDomains.forEach(function(d){ idsAfectados = idsAfectados.concat(domains[d]); });
+      btn.textContent = 'Marcando '+idsAfectados.length+' como baja…';
+      sb('leads?id=in.('+idsAfectados.join(',')+')', {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json', Prefer:'return=minimal'},
+        body: JSON.stringify({estado:'baja', updated_at: new Date().toISOString()})
+      }).then(function(){
+        alert('Comprobados '+domainList.length+' dominios. '+invalidDomains.length+' no tienen servidor de correo válido ('+idsAfectados.length+' contactos) y se han marcado como "Baja".');
+        fetchLeads();
+      }).catch(function(e){
+        alert('Se detectaron '+idsAfectados.length+' contactos con dominio inválido, pero hubo un error al marcarlos: '+e.message);
+      }).finally(function(){
+        btn.disabled = false; btn.textContent = '🔍 Verificar emails';
       });
     });
   }
