@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns').promises;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -123,6 +124,17 @@ function elegibles(leads, campanasPorId) {
   return out;
 }
 
+async function tieneDominioValido(email) {
+  const domain = String(email || '').split('@')[1];
+  if (!domain) return false;
+  try {
+    const records = await dns.resolveMx(domain);
+    return Array.isArray(records) && records.length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 function construirHtmlConPixel(cuerpoHtml, leadId, toqueId) {
   const pixelUrl = `${SUPABASE_URL}/functions/v1/track-open?lead=${leadId}&toque=${toqueId}`;
   return cuerpoHtml + `<img src="${pixelUrl}" width="1" height="1" style="display:none" alt="">`;
@@ -152,6 +164,21 @@ async function main() {
   let enviados = 0;
   try {
     for (const { lead, toqueActual } of pendientes) {
+      const dominioValido = await tieneDominioValido(lead.email);
+      if (!dominioValido) {
+        console.log(`Dominio sin MX, no se envía a ${lead.email} (${lead.nombre}) — marcado como baja`);
+        try {
+          await actualizarLead(lead.id, {
+            estado: 'baja',
+            notas: (lead.notas ? lead.notas + ' | ' : '') + 'Email inválido (dominio sin registros MX), excluido automáticamente'
+          });
+        } catch (err) {
+          console.error(`No se pudo marcar baja a ${lead.email}:`, err.message);
+        }
+        enviados++;
+        await actualizarEnvioEstado({ enviados });
+        continue;
+      }
       const subject = rellenarPlantilla(toqueActual.asunto, lead);
       const cuerpoHtml = rellenarPlantilla(toqueActual.cuerpo, lead);
       const htmlConPixel = construirHtmlConPixel(cuerpoHtml, lead.id, toqueActual.id);
