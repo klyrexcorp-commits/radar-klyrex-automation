@@ -85,9 +85,10 @@ async function actualizarEnvioEstado(patch) {
 }
 
 function rellenarPlantilla(texto, lead) {
+  const negocio = lead.nombre || 'tu negocio';
   return String(texto || '')
-    .replace(/\{negocio\}/g, lead.nombre || 'tu negocio')
-    .replace(/\{contacto\}/g, lead.contacto || 'equipo')
+    .replace(/\{negocio\}/g, negocio)
+    .replace(/\{contacto\}/g, lead.contacto || ('equipo de ' + negocio))
     .replace(/\{ciudad\}/g, lead.ciudad || 'tu zona');
 }
 
