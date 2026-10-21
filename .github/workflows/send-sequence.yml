@@ -2,6 +2,8 @@ name: Secuencia de email Radar Klyrex
 
 on:
   workflow_dispatch: {}
+  schedule:
+    - cron: '0 7 * * *'
 
 jobs:
   enviar:
