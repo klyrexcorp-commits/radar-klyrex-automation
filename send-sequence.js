@@ -7,6 +7,7 @@ const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 const GMAIL_FROM_ADDRESS = process.env.GMAIL_FROM_ADDRESS || GMAIL_USER;
 const DELAY_MS = Number(process.env.DELAY_MS || 24000);
+const MAX_PER_RUN = Number(process.env.MAX_PER_RUN || 60);
 
 for (const [name, value] of Object.entries({ SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD })) {
   if (!value) {
@@ -152,8 +153,12 @@ async function main() {
   console.log(`Campañas activas: ${campanas.length} (${campanas.map(c => `${c.nombre}: ${c.campana_toques.length} toques`).join(', ') || 'ninguna'}).`);
 
   const todos = await leerLeadsPendientes();
-  const pendientes = elegibles(todos, campanasPorId);
-  console.log(`Leads totales no cerrados con campaña: ${todos.length}. Pendientes de envío hoy: ${pendientes.length}. Pausa entre envíos: ${DELAY_MS / 1000}s.`);
+  const elegiblesHoy = elegibles(todos, campanasPorId);
+  const pendientes = elegiblesHoy.slice(0, MAX_PER_RUN);
+  console.log(`Leads totales no cerrados con campaña: ${todos.length}. Elegibles hoy: ${elegiblesHoy.length}. Tope por ejecución: ${MAX_PER_RUN}. Se enviarán: ${pendientes.length}. Pausa entre envíos: ${DELAY_MS / 1000}s.`);
+  if (elegiblesHoy.length > MAX_PER_RUN) {
+    console.log(`Quedan ${elegiblesHoy.length - MAX_PER_RUN} pendientes para una próxima ejecución (límite diario para proteger la reputación de la cuenta de Gmail).`);
+  }
 
   await actualizarEnvioEstado({
     en_curso: true,
