@@ -154,6 +154,13 @@ async function main() {
 
   const todos = await leerLeadsPendientes();
   const elegiblesHoy = elegibles(todos, campanasPorId);
+  // Se baraja antes de recortar al tope diario: si no, los leads más
+  // antiguos (p. ej. una tanda importada un día antes que otra) acaparan
+  // el cupo cada día y los más nuevos nunca llegan a tocarles el turno.
+  for (let i = elegiblesHoy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [elegiblesHoy[i], elegiblesHoy[j]] = [elegiblesHoy[j], elegiblesHoy[i]];
+  }
   const pendientes = elegiblesHoy.slice(0, MAX_PER_RUN);
   console.log(`Leads totales no cerrados con campaña: ${todos.length}. Elegibles hoy: ${elegiblesHoy.length}. Tope por ejecución: ${MAX_PER_RUN}. Se enviarán: ${pendientes.length}. Pausa entre envíos: ${DELAY_MS / 1000}s.`);
   if (elegiblesHoy.length > MAX_PER_RUN) {
