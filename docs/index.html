@@ -592,7 +592,7 @@
       if(currentMainTab==='campanas') renderCampanas();
       renderSegTabs();
       if(currentMainTab==='pipeline') renderBoard();
-      if(currentMainTab==='contactos') renderContactos();
+      if(currentMainTab==='contactos' && selectedIds.size===0) renderContactos();
       renderHub();
     }).catch(function(e){ console.error('Error cargando campañas', e); });
   }
@@ -904,7 +904,7 @@
     if(btnBulkMove) btnBulkMove.addEventListener('click', function(){
       var sel = document.getElementById('bulkCampanaSelect');
       var val = sel.value;
-      if(!val) return;
+      if(!val){ alert('Elige antes una campaña en el desplegable.'); return; }
       var ids = Array.from(selectedIds);
       var patch = val==='__ninguna__' ? {campana_id:null, toque:0, fecha_ultimo_envio:null} : {campana_id:val, toque:0, fecha_ultimo_envio:null};
       btnBulkMove.disabled = true; btnBulkMove.textContent = 'Moviendo…';
@@ -1384,7 +1384,10 @@
     renderSegTabs();
     renderProvinciaFilter();
     if(currentMainTab === 'pipeline') renderBoard();
-    if(currentMainTab === 'contactos') renderContactos();
+    // Si hay contactos seleccionados, no reconstruimos la tabla en cada
+    // refresco automático (cada 10s): si no, se pierde la campaña elegida
+    // en el desplegable justo antes de pulsar "Mover" y parece que no hace nada.
+    if(currentMainTab === 'contactos' && selectedIds.size===0) renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
     if(currentMainTab === 'estadisticas') renderEstadisticas();
     renderHub();
