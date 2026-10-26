@@ -1632,7 +1632,8 @@
       email: document.getElementById('f_email').value.trim(),
       origen: document.getElementById('f_source').value,
       score: Math.max(0, Math.min(100, Number(document.getElementById('f_score').value)||0)),
-      notas: document.getElementById('f_notes').value.trim()
+      notas: document.getElementById('f_notes').value.trim(),
+      segmento: 'general'
     };
   }
 
@@ -1773,7 +1774,7 @@
     btn.disabled = true; btn.textContent = 'Importando…';
 
     var leadsToImport = importData.rows.map(function(row){
-      var lead = {estado:'nuevo', toque:0, origen:'outbound', campana_id: campId};
+      var lead = {estado:'nuevo', toque:0, origen:'outbound', campana_id: campId, segmento:'general'};
       FIELD_DEFS.forEach(function(f){
         var idx = mapping[f.key];
         lead[f.key] = idx>=0 && row[idx]!=null ? row[idx].trim() : '';
