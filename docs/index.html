@@ -550,8 +550,7 @@
     return fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({}, options, {headers: headers}))
       .then(function(res){
         if(!res.ok){ return res.text().then(function(t){ throw new Error('Supabase ' + res.status + ': ' + t); }); }
-        if(res.status === 204) return null;
-        return res.json();
+        return res.text().then(function(t){ return t ? JSON.parse(t) : null; });
       });
   }
   function fetchLeads(){
