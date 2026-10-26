@@ -148,7 +148,17 @@ async function main() {
     auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD }
   });
 
-  const campanas = await leerCampanas();
+  let campanas = await leerCampanas();
+  const CAMPANA_NOMBRE = String(process.env.CAMPANA_NOMBRE || '').trim();
+  if (CAMPANA_NOMBRE) {
+    const filtradas = campanas.filter(c => c.nombre.trim().toLowerCase() === CAMPANA_NOMBRE.toLowerCase());
+    if (filtradas.length === 0) {
+      console.error(`No existe ninguna campaña activa llamada "${CAMPANA_NOMBRE}". Campañas activas: ${campanas.map(c => c.nombre).join(', ') || 'ninguna'}.`);
+      process.exit(1);
+    }
+    campanas = filtradas;
+    console.log(`Envío puntual: solo para la campaña "${CAMPANA_NOMBRE}".`);
+  }
   const campanasPorId = new Map(campanas.map(c => [c.id, c]));
   console.log(`Campañas activas: ${campanas.length} (${campanas.map(c => `${c.nombre}: ${c.campana_toques.length} toques`).join(', ') || 'ninguna'}).`);
 
