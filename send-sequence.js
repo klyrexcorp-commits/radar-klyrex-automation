@@ -38,20 +38,32 @@ async function leerCampanas() {
   return campanas;
 }
 
+// Supabase devuelve como máximo 1000 filas por petición: se lee por páginas.
+// Sin esto solo se veían los 1000 leads más antiguos (ya contactados) y los
+// recién importados no entraban nunca en la cola de envío.
 async function leerLeadsPendientes() {
-  const params = new URLSearchParams({
-    select: '*',
-    estado: 'not.in.(baja,respondido,ganado,perdido)',
-    campana_id: 'not.is.null',
-    order: 'created_at.asc'
-  });
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?${params}`, {
-    headers: { apikey: SUPABASE_SECRET_KEY }
-  });
-  if (!res.ok) {
-    throw new Error(`Error leyendo Supabase: HTTP ${res.status} - ${await res.text()}`);
+  const PAGINA = 1000;
+  const todos = [];
+  for (let offset = 0; ; offset += PAGINA) {
+    const params = new URLSearchParams({
+      select: '*',
+      estado: 'not.in.(baja,respondido,ganado,perdido)',
+      campana_id: 'not.is.null',
+      order: 'created_at.asc,id.asc',
+      limit: String(PAGINA),
+      offset: String(offset)
+    });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?${params}`, {
+      headers: { apikey: SUPABASE_SECRET_KEY }
+    });
+    if (!res.ok) {
+      throw new Error(`Error leyendo Supabase: HTTP ${res.status} - ${await res.text()}`);
+    }
+    const filas = await res.json();
+    todos.push(...filas);
+    if (filas.length < PAGINA) break;
   }
-  return res.json();
+  return todos;
 }
 
 async function actualizarLead(id, patch) {
