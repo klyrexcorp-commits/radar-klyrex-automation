@@ -1,0 +1,44 @@
+name: Buscar leads Radar Klyrex
+
+on:
+  workflow_dispatch:
+    inputs:
+      objetivo:
+        description: 'Numero de leads a buscar (por defecto 80)'
+        required: false
+        default: '80'
+  schedule:
+    - cron: '0 6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Buscar y actualizar leads
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OBJETIVO_LEADS: ${{ github.event.inputs.objetivo || '80' }}
+        run: node buscar-leads.js
+
+      - name: Guardar el registro de negocios ya vistos
+        run: |
+          git config user.name "radar-klyrex-bot"
+          git config user.email "klyrexcorp@gmail.com"
+          git add leads-data/vistos.json
+          git diff --cached --quiet || git commit -m "Actualizar registro de negocios ya vistos"
+          git push
