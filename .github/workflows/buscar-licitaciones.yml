@@ -1,0 +1,41 @@
+name: Buscar leads de licitaciones publicas
+
+on:
+  workflow_dispatch:
+    inputs:
+      objetivo:
+        description: 'Numero de leads a buscar (por defecto 50)'
+        required: false
+        default: '50'
+  schedule:
+    - cron: '0 6 5 * *'
+
+permissions:
+  contents: write
+
+jobs:
+  buscar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Buscar y actualizar leads de licitaciones
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OBJETIVO_LEADS: ${{ github.event.inputs.objetivo || '50' }}
+        run: node buscar-licitaciones.js
+
+      - name: Guardar el registro de empresas ya vistas
+        run: |
+          git config user.name "radar-klyrex-bot"
+          git config user.email "klyrexcorp@gmail.com"
+          git add leads-data/vistos_licitaciones.json
+          git diff --cached --quiet || git commit -m "Actualizar registro de empresas de licitaciones ya vistas"
+          git push
