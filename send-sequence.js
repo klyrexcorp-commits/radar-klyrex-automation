@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns').promises;
+const { ImapFlow } = require('imapflow');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -149,9 +150,102 @@ async function tieneDominioValido(email) {
   }
 }
 
-function construirHtmlConPixel(cuerpoHtml, leadId, toqueId) {
+function asuntoMailto(prefijo, lead) {
+  return encodeURIComponent(`${prefijo} - ${lead.nombre || 'lead'}`);
+}
+
+// Botones de respuesta de un clic: al pulsarlos el cliente de correo del lead
+// abre un nuevo email (From = su propia dirección) dirigido a nosotros, que
+// revisarRespuestas() detecta luego por remitente + por el asunto SI/NO/BAJA.
+function construirCtaHtml(lead) {
+  const mailtoSi = `mailto:${GMAIL_FROM_ADDRESS}?subject=${asuntoMailto('SI', lead)}`;
+  const mailtoNo = `mailto:${GMAIL_FROM_ADDRESS}?subject=${asuntoMailto('NO', lead)}`;
+  return `<div style="margin:22px 0 4px">` +
+    `<a href="${mailtoSi}" style="display:inline-block;background:#1a7f37;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;margin-right:10px">Sí, cuéntame más</a>` +
+    `<a href="${mailtoNo}" style="display:inline-block;background:#6b7280;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px">No, gracias</a>` +
+    `</div>`;
+}
+
+function construirFooterHtml(lead) {
+  const mailtoBaja = `mailto:${GMAIL_FROM_ADDRESS}?subject=${asuntoMailto('BAJA', lead)}`;
+  return `<div style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5e5;font-family:Arial,sans-serif;font-size:11px;color:#888888">` +
+    `Klyrex · Si no quieres recibir más emails, <a href="${mailtoBaja}" style="color:#888888">haz clic aquí para darte de baja</a>.` +
+    `</div>`;
+}
+
+function htmlATexto(html) {
+  return String(html || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function construirHtmlConPixel(cuerpoHtml, leadId, toqueId, lead) {
   const pixelUrl = `${SUPABASE_URL}/functions/v1/track-open?lead=${leadId}&toque=${toqueId}`;
-  return cuerpoHtml + `<img src="${pixelUrl}" width="1" height="1" style="display:none" alt="">`;
+  return cuerpoHtml + construirCtaHtml(lead) + construirFooterHtml(lead) + `<img src="${pixelUrl}" width="1" height="1" style="display:none" alt="">`;
+}
+
+function construirTextoPlano(cuerpoHtml) {
+  return htmlATexto(cuerpoHtml) +
+    '\n\n¿Te interesa? Responde SI.\n¿No es para vosotros? Responde NO.\n\nPara no recibir más emails, responde BAJA.';
+}
+
+// Revisa el inbox de Gmail por IMAP (misma cuenta que envía) buscando
+// respuestas de los leads activos de los últimos días. Si el remitente
+// coincide con el email de un lead: "BAJA" en el asunto -> estado baja,
+// cualquier otra respuesta -> estado respondido. Así no hace falta marcar
+// nada a mano y el envío del día ya no vuelve a escribir a quien contestó.
+async function revisarRespuestas(leadsActivos) {
+  const porEmail = new Map();
+  for (const l of leadsActivos) {
+    if (l.email) porEmail.set(l.email.toLowerCase(), l);
+  }
+  if (porEmail.size === 0) return;
+
+  const client = new ImapFlow({
+    host: 'imap.gmail.com',
+    port: 993,
+    secure: true,
+    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+    logger: false
+  });
+
+  let respuestas = 0;
+  let bajas = 0;
+  try {
+    await client.connect();
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      const desde = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      for await (const msg of client.fetch({ since: desde }, { envelope: true })) {
+        const remitente = ((msg.envelope.from && msg.envelope.from[0] && msg.envelope.from[0].address) || '').toLowerCase();
+        const lead = porEmail.get(remitente);
+        if (!lead) continue;
+        const asunto = String(msg.envelope.subject || '');
+        if (/^\s*baja\b/i.test(asunto)) {
+          await actualizarLead(lead.id, {
+            estado: 'baja',
+            notas: (lead.notas ? lead.notas + ' | ' : '') + 'Baja solicitada por email'
+          });
+          bajas++;
+        } else if (String(lead.estado || '').toLowerCase() !== 'respondido') {
+          await actualizarLead(lead.id, { estado: 'respondido' });
+          respuestas++;
+        }
+      }
+    } finally {
+      await lock.release();
+    }
+  } catch (err) {
+    console.error('Aviso: no se pudo revisar el inbox por IMAP:', err.message);
+  } finally {
+    try { await client.logout(); } catch (_) { /* no bloquea el envío */ }
+  }
+  console.log(`Revisión de inbox: ${respuestas} respuesta(s) nueva(s), ${bajas} baja(s).`);
 }
 
 async function main() {
@@ -174,6 +268,10 @@ async function main() {
   const campanasPorId = new Map(campanas.map(c => [c.id, c]));
   console.log(`Campañas activas: ${campanas.length} (${campanas.map(c => `${c.nombre}: ${c.campana_toques.length} toques`).join(', ') || 'ninguna'}).`);
 
+  const antesDeRevisar = await leerLeadsPendientes();
+  await revisarRespuestas(antesDeRevisar);
+  // Se relee tras revisarRespuestas() para que quien acaba de contestar o
+  // darse de baja no reciba hoy otro email de la secuencia.
   const todos = await leerLeadsPendientes();
   const elegiblesHoy = elegibles(todos, campanasPorId);
   // Se baraja antes de recortar al tope diario: si no, los leads más
@@ -216,13 +314,19 @@ async function main() {
       }
       const subject = rellenarPlantilla(toqueActual.asunto, lead);
       const cuerpoHtml = rellenarPlantilla(toqueActual.cuerpo, lead);
-      const htmlConPixel = construirHtmlConPixel(cuerpoHtml, lead.id, toqueActual.id);
+      const htmlConPixel = construirHtmlConPixel(cuerpoHtml, lead.id, toqueActual.id, lead);
+      const textoPlano = construirTextoPlano(cuerpoHtml);
       try {
         await transporter.sendMail({
           from: `"Ignacio - Klyrex" <${GMAIL_FROM_ADDRESS}>`,
           to: lead.email,
           subject,
-          html: htmlConPixel
+          html: htmlConPixel,
+          text: textoPlano,
+          headers: {
+            'List-Unsubscribe': `<mailto:${GMAIL_FROM_ADDRESS}?subject=${asuntoMailto('BAJA', lead)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+          }
         });
         const toque = Number(lead.toque || 0);
         const toquesEnviados = [...(lead.toques_enviados || []), toqueActual.id];
