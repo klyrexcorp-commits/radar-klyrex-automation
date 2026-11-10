@@ -181,6 +181,17 @@ async function buscarEmailEnWeb(url, html) {
   return null;
 }
 
+// Sugerencia de a quién dirigirse según cómo suena el nombre de la empresa.
+// Es una pista para el envío manual, no un dato verificado.
+function sugerirPuesto(nombre) {
+  const n = nombre.toLowerCase();
+  if (/\bslu\b/.test(n)) return 'el administrador único / socio fundador';
+  if (/\bsl\b/.test(n) && !/\bgrupo\b|\bholding\b/.test(n)) return 'el gerente o socio';
+  if (/\bsa\b|\bgrupo\b|\bholding\b/.test(n)) return 'el responsable comercial o de desarrollo de negocio';
+  if (!/\b(sl|sa|slu|sau)\b/.test(n)) return 'la propia persona (autónomo/freelance)';
+  return 'el responsable de proyectos o comercial';
+}
+
 async function tieneMx(email) {
   const dominio = email.split('@')[1];
   try {
@@ -253,7 +264,7 @@ async function main() {
     toque: 0,
     segmento: 'web',
     campana_id: null,
-    notas: `Fuente: Licitación pública — ganó "${l.titulo.slice(0, 120)}" de ${l.organo}`
+    notas: `Fuente: Licitación pública — ENVÍO MANUAL, no mover a campaña. Ganó "${l.titulo.slice(0, 120)}" de ${l.organo}. Dirigirse a: ${sugerirPuesto(l.nombre)}.`
   }));
   await sb('leads', { method: 'POST', body: JSON.stringify(paraImportar) });
   console.log(`Importados ${paraImportar.length} leads nuevos de licitaciones públicas, sin campaña, listos para revisar.`);
