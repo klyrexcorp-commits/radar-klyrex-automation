@@ -30,30 +30,37 @@ function sb(path2, opts) {
   });
 }
 
-// ---- 1. Descargar el fichero mensual de licitaciones de PLACSP ----
-// Los datos tardan unos meses en publicarse: se prueba desde hace 2 meses
-// hacia atrás hasta encontrar uno que exista.
-async function descargarZipMasReciente() {
-  const hoy = new Date();
-  for (let atras = 2; atras <= 8; atras++) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth() - atras, 1);
-    const aaaamm = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const url = `https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_${aaaamm}.zip`;
-    console.log(`Probando mes ${aaaamm}...`);
-    try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RadarKlyrexBot/1.0; +mailto:klyrexcorp@gmail.com)' } });
-      if (!res.ok) { console.log(`  HTTP ${res.status}, siguiente mes`); continue; }
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length < 100000) { console.log('  fichero demasiado pequeño, siguiente mes'); continue; }
-      const tmpZip = path.join(os.tmpdir(), 'licitaciones.zip');
-      fs.writeFileSync(tmpZip, buf);
-      console.log(`  OK, ${buf.length} bytes. Mes usado: ${aaaamm}`);
-      return { zipPath: tmpZip, mes: aaaamm };
-    } catch (e) {
-      console.log(`  error: ${e.message}, siguiente mes`);
-    }
+// ---- 1. Descargar los ficheros mensuales de licitaciones de PLACSP ----
+// Los datos tardan unos meses en publicarse. En vez de quedarnos con el
+// primer mes disponible, vamos tirando hacia atrás (agosto, julio, junio...)
+// hasta MAX_MESES meses, acumulando candidatos de todos, para tener más
+// oportunidades por ejecución (el acierto de email por empresa es bajo).
+const MAX_MESES = Number(process.env.MAX_MESES || 6);
+
+async function descargarMes(aaaamm) {
+  const url = `https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3_${aaaamm}.zip`;
+  console.log(`Probando mes ${aaaamm}...`);
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RadarKlyrexBot/1.0; +mailto:klyrexcorp@gmail.com)' } });
+    if (!res.ok) { console.log(`  HTTP ${res.status}, siguiente mes`); return null; }
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length < 100000) { console.log('  fichero demasiado pequeño, siguiente mes'); return null; }
+    const tmpZip = path.join(os.tmpdir(), `licitaciones_${aaaamm}.zip`);
+    fs.writeFileSync(tmpZip, buf);
+    console.log(`  OK, ${buf.length} bytes.`);
+    return tmpZip;
+  } catch (e) {
+    console.log(`  error: ${e.message}, siguiente mes`);
+    return null;
   }
-  throw new Error('No se encontró ningún mes descargable en los últimos 8 meses.');
+}
+
+function* mesesHaciaAtras() {
+  const hoy = new Date();
+  for (let atras = 2; atras <= 2 + MAX_MESES + 6; atras++) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - atras, 1);
+    yield `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
 }
 
 function descomprimir(zipPath) {
@@ -65,7 +72,7 @@ function descomprimir(zipPath) {
 }
 
 // ---- 2. Filtrar contratos relevantes ----
-const KEYWORDS = /chatbot|asistente virtual|render(izado)?s? 3d|visualizaci[oó]n 3d|p[aá]gina web (municipal|corporativa)?|dise[nñ]o (y desarrollo )?web|plan de contenidos|redes sociales|gemelo digital/i;
+const KEYWORDS = /chatbot|asistente virtual|render(izado)?s? 3d|visualizaci[oó]n 3d|p[aá]gina web|dise[nñ]o (y desarrollo )?web|desarrollo web|plan de contenidos|redes sociales|gemelo digital|automatizaci[oó]n|transformaci[oó]n digital|marketing digital|aplicaci[oó]n m[oó]vil|app m[oó]vil|comercio electr[oó]nico|tienda online|community manager|inteligencia artificial/i;
 const EXCLUIR_GANADOR = /^(indra|ntt data|telef[oó]nica|accenture|atos\b|everis|minsait|t-systems|capgemini|deloitte|vodafone|banco )/i;
 
 function extraerCandidatos(dirExtraido) {
@@ -216,11 +223,6 @@ async function emailsYaEnCrm() {
 }
 
 async function main() {
-  const { zipPath, mes } = await descargarZipMasReciente();
-  const dirExtraido = descomprimir(zipPath);
-  const candidatos = extraerCandidatos(dirExtraido);
-  console.log(`Contratos relevantes encontrados en ${mes}: ${candidatos.length}`);
-
   const vistos = cargarVistos();
   const emailsExistentes = await emailsYaEnCrm();
   // La clave incluye el contrato (no solo la empresa): una empresa que ya
@@ -228,22 +230,39 @@ async function main() {
   // si gana uno NUEVO y distinto más adelante — solo se descarta repetir el
   // mismo contrato dos veces.
   const claveDe = c => `${c.nif || c.nombre.toLowerCase()}::${c.titulo}`;
-  const nuevos = candidatos.filter(c => !vistos.has(claveDe(c)));
-  console.log(`No vistos en meses anteriores: ${nuevos.length}`);
 
   const listos = [];
-  for (const c of nuevos) {
+  let mesesProbados = 0;
+  let mesesConDatos = 0;
+  for (const aaaamm of mesesHaciaAtras()) {
     if (listos.length >= OBJETIVO) break;
-    vistos.add(claveDe(c));
-    const web = await resolverWeb(c.nombre);
-    if (!web) continue;
-    const email = await buscarEmailEnWeb(web.url, web.html);
-    if (!email) continue;
-    if (emailsExistentes.has(email) || listos.some(l => l.email === email)) continue;
-    if (!(await tieneMx(email))) continue;
-    listos.push({ ...c, email, website: web.url });
-    console.log(`[${listos.length}/${OBJETIVO}] ${c.nombre} -> ${email} (${web.url})`);
+    if (mesesConDatos >= MAX_MESES) break;
+    mesesProbados++;
+    const zipPath = await descargarMes(aaaamm);
+    if (!zipPath) continue;
+    mesesConDatos++;
+
+    const dirExtraido = descomprimir(zipPath);
+    const candidatos = extraerCandidatos(dirExtraido);
+    fs.rmSync(dirExtraido, { recursive: true, force: true });
+    fs.rmSync(zipPath, { force: true });
+    const nuevos = candidatos.filter(c => !vistos.has(claveDe(c)));
+    console.log(`${aaaamm}: ${candidatos.length} contratos relevantes, ${nuevos.length} no vistos antes.`);
+
+    for (const c of nuevos) {
+      if (listos.length >= OBJETIVO) break;
+      vistos.add(claveDe(c));
+      const web = await resolverWeb(c.nombre);
+      if (!web) continue;
+      const email = await buscarEmailEnWeb(web.url, web.html);
+      if (!email) continue;
+      if (emailsExistentes.has(email) || listos.some(l => l.email === email)) continue;
+      if (!(await tieneMx(email))) continue;
+      listos.push({ ...c, email, website: web.url });
+      console.log(`[${listos.length}/${OBJETIVO}] ${c.nombre} -> ${email} (${web.url})`);
+    }
   }
+  console.log(`Meses probados: ${mesesProbados}, con datos: ${mesesConDatos}.`);
   guardarVistos(vistos);
 
   if (listos.length === 0) {
