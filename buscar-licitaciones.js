@@ -223,14 +223,18 @@ async function main() {
 
   const vistos = cargarVistos();
   const emailsExistentes = await emailsYaEnCrm();
-  const nuevos = candidatos.filter(c => !vistos.has(c.nif || c.nombre.toLowerCase()));
+  // La clave incluye el contrato (no solo la empresa): una empresa que ya
+  // vimos ganando un concurso en un mes anterior sigue siendo un lead válido
+  // si gana uno NUEVO y distinto más adelante — solo se descarta repetir el
+  // mismo contrato dos veces.
+  const claveDe = c => `${c.nif || c.nombre.toLowerCase()}::${c.titulo}`;
+  const nuevos = candidatos.filter(c => !vistos.has(claveDe(c)));
   console.log(`No vistos en meses anteriores: ${nuevos.length}`);
 
   const listos = [];
   for (const c of nuevos) {
     if (listos.length >= OBJETIVO) break;
-    const clave = c.nif || c.nombre.toLowerCase();
-    vistos.add(clave);
+    vistos.add(claveDe(c));
     const web = await resolverWeb(c.nombre);
     if (!web) continue;
     const email = await buscarEmailEnWeb(web.url, web.html);
