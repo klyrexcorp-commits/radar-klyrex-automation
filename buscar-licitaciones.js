@@ -72,8 +72,35 @@ function descomprimir(zipPath) {
 }
 
 // ---- 2. Filtrar contratos relevantes ----
-const KEYWORDS = /chatbot|asistente virtual|render(izado)?s? 3d|visualizaci[oó]n 3d|p[aá]gina web|dise[nñ]o (y desarrollo )?web|desarrollo web|plan de contenidos|redes sociales|gemelo digital|automatizaci[oó]n|transformaci[oó]n digital|marketing digital|aplicaci[oó]n m[oó]vil|app m[oó]vil|comercio electr[oó]nico|tienda online|community manager|inteligencia artificial/i;
+// Palabras clave ESPECÍFICAS de nuestro servicio (webs, chatbots, renders 3D,
+// automatización de marketing/procesos digitales, redes sociales, IA...).
+// Deliberadamente NO incluye "automatización" ni "transformación digital" a
+// secas: esas dos frases solas colaban obras de abastecimiento de agua,
+// climatización de edificios, etc. (su "automatización" es de maquinaria
+// industrial, no de software) y nombres de consejerías que llevan "y
+// Transformación Digital" en su propio nombre aunque el contrato no tenga
+// nada que ver con eso.
+const KEYWORDS = /chatbots?|asistente virtual|render(izado)?s? 3d|visualizaci[oó]n 3d|modelado 3d|maquetas? 3d|p[aá]gina web|dise[nñ]o (y desarrollo )?web|desarrollo web|portal web|plan(es)? de contenido|gesti[oó]n de redes sociales|redes sociales|community manager|gemelo digital|aplicaci[oó]n m[oó]vil|app m[oó]vil|comercio electr[oó]nico|tienda online|marketing digital|inteligencia artificial|automatizaci[oó]n (de|del) (marketing|procesos|tareas|flujos|correo|email|atenci[oó]n)|automatizaci[oó]n comercial|automatizaci[oó]n rob[oó]tica|\bRPA\b/i;
+// Contratos de obra civil/industrial que coinciden por casualidad con alguna
+// palabra clave (p. ej. "automatización" de una red de agua) pero no tienen
+// nada que ver con desarrollo digital: si el título las menciona, se descarta
+// aunque haya hecho match arriba.
+const EXCLUIR_SECTOR = /abastecimiento|saneamiento|alcantarillado|regad[ií]o|volum[eé]trico|potabilizadora|depuradora|\bEDAR\b|\bETAP\b|climatizaci[oó]n|calefacci[oó]n|fontaner[ií]a|instalaci[oó]n el[eé]ctrica|obra civil|pavimentaci[oó]n|asfaltado|jardiner[ií]a|zonas? verdes?|residuos|limpieza (viaria|de edificios|y retirada)|recogida de residuos|bombeo|red(es)? de agua/i;
 const EXCLUIR_GANADOR = /^(indra|ntt data|telef[oó]nica|accenture|atos\b|everis|minsait|t-systems|capgemini|deloitte|vodafone|banco )/i;
+
+function extraerImporte(entrada) {
+  const summaryM = entrada.match(/<summary[^>]*>([^<]*)<\/summary>/);
+  if (!summaryM) return '';
+  const importeM = summaryM[1].match(/Importe:\s*([\d.,]+)\s*EUR/i);
+  return importeM ? importeM[1] : '';
+}
+
+function formatearImporte(raw) {
+  if (!raw) return '';
+  const n = Number(raw);
+  if (!isFinite(n)) return raw + ' €';
+  return n.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
+}
 
 function extraerCandidatos(dirExtraido) {
   const ficheros = fs.readdirSync(dirExtraido).filter(f => f.endsWith('.atom'));
@@ -83,7 +110,9 @@ function extraerCandidatos(dirExtraido) {
     const entries = data.split('<entry>').slice(1);
     for (const e of entries) {
       const titleM = e.match(/<title>([^<]*)<\/title>/);
-      if (!titleM || !KEYWORDS.test(titleM[1])) continue;
+      if (!titleM) continue;
+      const titulo = titleM[1].trim();
+      if (!KEYWORDS.test(titulo) || EXCLUIR_SECTOR.test(titulo)) continue;
       const winnerM = e.match(/<cac:WinningParty>[\s\S]*?<cbc:Name>([^<]*)<\/cbc:Name>/);
       if (!winnerM) continue;
       const winner = winnerM[1].trim();
@@ -94,9 +123,10 @@ function extraerCandidatos(dirExtraido) {
       candidatos.push({
         nif: nifM ? nifM[1].trim() : '',
         nombre: winner,
-        titulo: titleM[1].trim(),
+        titulo,
         organo: buyerM ? buyerM[1].trim() : '',
-        ciudad: cityM ? cityM[1].trim() : ''
+        ciudad: cityM ? cityM[1].trim() : '',
+        importe: extraerImporte(e)
       });
     }
   }
@@ -232,7 +262,7 @@ function construirLead(l) {
     toque: 0,
     segmento: 'web',
     campana_id: null,
-    notas: `Fuente: Licitación pública — ENVÍO MANUAL, no mover a campaña. Ganó "${l.titulo.slice(0, 120)}" de ${l.organo}. Dirigirse a: ${sugerirPuesto(l.nombre)}.`
+    notas: `Fuente: Licitación pública — ENVÍO MANUAL, no mover a campaña. Ganó "${l.titulo.slice(0, 220)}" de ${l.organo} — Importe: ${formatearImporte(l.importe) || 'no publicado'} — Dirigirse a: ${sugerirPuesto(l.nombre)}.`
   };
 }
 
