@@ -1815,12 +1815,14 @@
   // ---- Licitaciones públicas (envío manual) ----
   function parseLicitacion(notas){
     var txt = String(notas||'');
-    var contrato = '', organo = '', puesto = '';
-    var mGano = txt.match(/Gan[oó]\s+"([^"]*)"\s+de\s+([^.]*?)(?:\.|$)/i);
+    var contrato = '', organo = '', puesto = '', importe = '';
+    var mGano = txt.match(/Gan[oó]\s+"([^"]*)"\s+de\s+(.*?)\s*(?:—|\.|$)/i);
     if(mGano){ contrato = mGano[1]; organo = mGano[2]; }
+    var mImporte = txt.match(/Importe:\s*(.*?)\s*(?:—|$)/i);
+    if(mImporte) importe = mImporte[1];
     var mPuesto = txt.match(/Dirigirse a:\s*([^.]*)\./i);
     if(mPuesto) puesto = mPuesto[1];
-    return {contrato: contrato, organo: organo, puesto: puesto};
+    return {contrato: contrato, organo: organo, puesto: puesto, importe: importe};
   }
 
   function renderLicitaciones(){
@@ -1837,15 +1839,16 @@
         '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
         '<td>'+esc(l.ciudad)+'</td>' +
         '<td>'+esc(info.puesto||'—')+'</td>' +
-        '<td>'+esc(info.contrato||'—')+'</td>' +
+        '<td style="white-space:normal;min-width:260px">'+esc(info.contrato||'—')+'</td>' +
         '<td>'+esc(info.organo||'—')+'</td>' +
+        '<td class="tabular" style="font-weight:600">'+esc(info.importe||'—')+'</td>' +
         '<td><a href="mailto:'+esc(l.email)+'?subject='+asunto+'&body='+cuerpo+'" class="btn sm" onclick="event.stopPropagation()">✉ '+esc(l.email)+'</a></td>' +
       '</tr>';
     }).join('');
     elLicitaciones.innerHTML =
-      '<div style="margin-bottom:10px;color:var(--text-dim);font-size:13px">Empresas que han ganado licitaciones públicas relacionadas con webs, chatbots, renders 3D, automatizaciones o RRSS. No están en ninguna campaña: escríbeles tú a mano con el botón de email.</div>'+
+      '<div style="margin-bottom:10px;color:var(--text-dim);font-size:13px">Empresas que han ganado licitaciones públicas relacionadas con webs, chatbots, renders 3D, automatización de marketing/procesos o RRSS. No están en ninguna campaña: escríbeles tú a mano con el botón de email.</div>'+
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th>Empresa</th><th>Ciudad</th><th>Puesto a quien dirigirse</th><th>Contrato ganado</th><th>Órgano contratante</th><th>Email</th>'+
+        '<th>Empresa</th><th>Ciudad</th><th>Puesto a quien dirigirse</th><th>Contrato ganado</th><th>Órgano contratante</th><th>Importe</th><th>Email</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
 
