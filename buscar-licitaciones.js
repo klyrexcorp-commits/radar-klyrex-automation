@@ -222,6 +222,20 @@ async function emailsYaEnCrm() {
   return new Set((filas || []).map(f => String(f.email || '').toLowerCase()).filter(Boolean));
 }
 
+function construirLead(l) {
+  return {
+    nombre: l.nombre,
+    email: l.email,
+    ciudad: l.ciudad || '',
+    origen: 'outbound',
+    estado: 'nuevo',
+    toque: 0,
+    segmento: 'web',
+    campana_id: null,
+    notas: `Fuente: Licitación pública — ENVÍO MANUAL, no mover a campaña. Ganó "${l.titulo.slice(0, 120)}" de ${l.organo}. Dirigirse a: ${sugerirPuesto(l.nombre)}.`
+  };
+}
+
 async function main() {
   const vistos = cargarVistos();
   const emailsExistentes = await emailsYaEnCrm();
@@ -231,11 +245,22 @@ async function main() {
   // mismo contrato dos veces.
   const claveDe = c => `${c.nif || c.nombre.toLowerCase()}::${c.titulo}`;
 
-  const listos = [];
+  // Se borra el lote anterior sin revisar UNA vez, al principio. Cada lead
+  // nuevo se guarda al momento (no al final de todos los meses): si un mes
+  // posterior se queda sin memoria o falla, lo ya encontrado no se pierde.
+  const filtroBorrado = new URLSearchParams({
+    campana_id: 'is.null',
+    estado: 'eq.nuevo',
+    notas: 'like.Fuente: Licitación pública*'
+  });
+  const borrados = await sb(`leads?${filtroBorrado}`, { method: 'DELETE', headers: { Prefer: 'return=representation' } });
+  console.log(`Lote anterior de licitaciones sin revisar borrado: ${(borrados || []).length} leads.`);
+
+  let total = 0;
   let mesesProbados = 0;
   let mesesConDatos = 0;
   for (const aaaamm of mesesHaciaAtras()) {
-    if (listos.length >= OBJETIVO) break;
+    if (total >= OBJETIVO) break;
     if (mesesConDatos >= MAX_MESES) break;
     mesesProbados++;
     const zipPath = await descargarMes(aaaamm);
@@ -250,47 +275,23 @@ async function main() {
     console.log(`${aaaamm}: ${candidatos.length} contratos relevantes, ${nuevos.length} no vistos antes.`);
 
     for (const c of nuevos) {
-      if (listos.length >= OBJETIVO) break;
+      if (total >= OBJETIVO) break;
       vistos.add(claveDe(c));
       const web = await resolverWeb(c.nombre);
       if (!web) continue;
       const email = await buscarEmailEnWeb(web.url, web.html);
       if (!email) continue;
-      if (emailsExistentes.has(email) || listos.some(l => l.email === email)) continue;
+      if (emailsExistentes.has(email)) continue;
       if (!(await tieneMx(email))) continue;
-      listos.push({ ...c, email, website: web.url });
-      console.log(`[${listos.length}/${OBJETIVO}] ${c.nombre} -> ${email} (${web.url})`);
+      emailsExistentes.add(email);
+      await sb('leads', { method: 'POST', body: JSON.stringify([construirLead({ ...c, email })]) });
+      total++;
+      console.log(`[${total}/${OBJETIVO}] ${c.nombre} -> ${email} (${web.url}) — guardado en el CRM`);
     }
+    // Se guarda el registro de vistos tras cada mes, no solo al final.
+    guardarVistos(vistos);
   }
-  console.log(`Meses probados: ${mesesProbados}, con datos: ${mesesConDatos}.`);
-  guardarVistos(vistos);
-
-  if (listos.length === 0) {
-    console.log('No se encontraron leads nuevos con web/email resoluble este mes. No se toca el CRM.');
-    return;
-  }
-
-  const filtroBorrado = new URLSearchParams({
-    campana_id: 'is.null',
-    estado: 'eq.nuevo',
-    notas: 'like.Fuente: Licitación pública*'
-  });
-  const borrados = await sb(`leads?${filtroBorrado}`, { method: 'DELETE', headers: { Prefer: 'return=representation' } });
-  console.log(`Lote anterior de licitaciones sin revisar borrado: ${(borrados || []).length} leads.`);
-
-  const paraImportar = listos.map(l => ({
-    nombre: l.nombre,
-    email: l.email,
-    ciudad: l.ciudad || '',
-    origen: 'outbound',
-    estado: 'nuevo',
-    toque: 0,
-    segmento: 'web',
-    campana_id: null,
-    notas: `Fuente: Licitación pública — ENVÍO MANUAL, no mover a campaña. Ganó "${l.titulo.slice(0, 120)}" de ${l.organo}. Dirigirse a: ${sugerirPuesto(l.nombre)}.`
-  }));
-  await sb('leads', { method: 'POST', body: JSON.stringify(paraImportar) });
-  console.log(`Importados ${paraImportar.length} leads nuevos de licitaciones públicas, sin campaña, listos para revisar.`);
+  console.log(`Meses probados: ${mesesProbados}, con datos: ${mesesConDatos}. Importados en total: ${total}.`);
 }
 
 main().catch(err => {
