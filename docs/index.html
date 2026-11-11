@@ -296,7 +296,7 @@
   .contactos-bar{position:sticky; top:0; z-index:6}
   .sent-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--ok); margin-right:7px; box-shadow:0 0 0 2px var(--ok-bg)}
 
-  /* CampaÃ±as */
+  /* Campañas */
   .camp-toolbar{display:flex; justify-content:flex-end; margin-bottom:16px}
   .camp-list{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px}
   .camp-pipe-card{background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--camp-color, var(--border)); border-radius:12px; padding:16px; cursor:pointer; display:flex; flex-direction:column; gap:9px; transition:transform .12s ease, border-color .12s ease}
@@ -413,9 +413,9 @@
 <body>
 
 <div id="hubView">
-  <span class="hub-eyebrow">Klyrex Â· CaptaciÃ³n</span>
+  <span class="hub-eyebrow">Klyrex · Captación</span>
   <h1 class="hub-title">Radar Klyrex</h1>
-  <p class="hub-sub">Tu centro de mando para la captaciÃ³n de leads. Elige una secciÃ³n para empezar.</p>
+  <p class="hub-sub">Tu centro de mando para la captación de leads. Elige una sección para empezar.</p>
   <div class="hub-radar-wrap">
     <div class="radar-mark lg" aria-hidden="true"></div>
     <div class="hub-grid" id="hubGrid"></div>
@@ -432,17 +432,17 @@
       </div>
     </div>
     <nav id="sidebarNav"></nav>
-    <div class="sidebar-foot">Panel de captaciÃ³n &amp; automatizaciÃ³n</div>
+    <div class="sidebar-foot">Panel de captación &amp; automatización</div>
   </aside>
 
   <div class="main-content">
     <header class="top">
       <h2 class="page-title" id="pageTitle">Pipeline</h2>
       <div class="top-actions" id="topActions">
-        <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, emailâ€¦">
+        <input type="search" id="search" class="search" placeholder="Buscar por nombre, contacto, email…">
         <div class="tabs" id="segTabs"></div>
         <select id="provinciaFilter"><option value="todas">Todas las provincias</option></select>
-        <button class="btn" id="btnImport">â‡ª Importar de Sheets</button>
+        <button class="btn" id="btnImport">⇪ Importar de Sheets</button>
         <button class="btn primary" id="btnNew">+ Nuevo lead</button>
       </div>
     </header>
@@ -481,14 +481,14 @@
     {key:'perdido', label:'Perdido'}
   ];
   var NAV = [
-    {key:'pipeline', label:'Pipeline', icon:'â—Ž', color:'var(--accent)', desc:'Tablero de ventas'},
-    {key:'flujo', label:'Flujo', icon:'â‡„', color:'var(--node-blue)', desc:'AutomatizaciÃ³n'},
-    {key:'contactos', label:'Contactos', icon:'â˜°', color:'var(--seg-web)', desc:'Listado completo'},
-    {key:'campanas', label:'CampaÃ±as', icon:'âœ‰', color:'var(--node-orange)', desc:'Secuencias de email'},
-    {key:'estadisticas', label:'EstadÃ­sticas', icon:'â–¦', color:'var(--seg-auto)', desc:'MÃ©tricas del embudo'},
-    {key:'licitaciones', label:'Licitaciones pÃºblicas', icon:'âš–', color:'var(--node-orange)', desc:'EnvÃ­o manual'}
+    {key:'pipeline', label:'Pipeline', icon:'◎', color:'var(--accent)', desc:'Tablero de ventas'},
+    {key:'flujo', label:'Flujo', icon:'⇄', color:'var(--node-blue)', desc:'Automatización'},
+    {key:'contactos', label:'Contactos', icon:'☰', color:'var(--seg-web)', desc:'Listado completo'},
+    {key:'campanas', label:'Campañas', icon:'✉', color:'var(--node-orange)', desc:'Secuencias de email'},
+    {key:'estadisticas', label:'Estadísticas', icon:'▦', color:'var(--seg-auto)', desc:'Métricas del embudo'},
+    {key:'licitaciones', label:'Licitaciones públicas', icon:'⚖', color:'var(--node-orange)', desc:'Envío manual'}
   ];
-  var LICITACIONES_PREFIJO = 'Fuente: LicitaciÃ³n pÃºblica';
+  var LICITACIONES_PREFIJO = 'Fuente: Licitación pública';
   function esLicitacion(l){ return String(l.notas||'').indexOf(LICITACIONES_PREFIJO) === 0; }
 
   var leads = [];
@@ -506,10 +506,10 @@
     var idx = campanas.findIndex(function(c){return c.id===campana.id;});
     return 'var(--cat-'+((idx>=0?idx:0)%8 + 1)+')';
   }
-  function campaignLabel(campana){ return campana ? campana.nombre : 'Sin campaÃ±a'; }
+  function campaignLabel(campana){ return campana ? campana.nombre : 'Sin campaña'; }
   function campChipHtml(campId){
     var c = campanaById(campId);
-    if(!c) return '<span class="chip" style="background:var(--surface-2);color:var(--text-dim)">Sin campaÃ±a</span>';
+    if(!c) return '<span class="chip" style="background:var(--surface-2);color:var(--text-dim)">Sin campaña</span>';
     var color = campaignColor(c);
     return '<span class="chip" style="background:color-mix(in srgb, '+color+' 18%, transparent);color:'+color+'">'+esc(c.nombre)+'</span>';
   }
@@ -586,7 +586,7 @@
       .then(fetchLeads);
   }
 
-  // ---- CampaÃ±as (Supabase) ----
+  // ---- Campañas (Supabase) ----
   function fetchCampanas(){
     return sb('campanas?select=*,campana_toques(*)&order=created_at.asc').then(function(rows){
       campanas = rows || [];
@@ -598,7 +598,7 @@
       if(currentMainTab==='pipeline') renderBoard();
       if(currentMainTab==='contactos' && selectedIds.size===0) renderContactos();
       renderHub();
-    }).catch(function(e){ console.error('Error cargando campaÃ±as', e); });
+    }).catch(function(e){ console.error('Error cargando campañas', e); });
   }
   function createCampana(data){
     return sb('campanas', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=representation'}, body: JSON.stringify(data)})
@@ -625,7 +625,7 @@
     return sb('campana_toques?id=eq.'+id, {method:'DELETE'}).then(fetchCampanas);
   }
 
-  // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es pÃºblico) ----
+  // ---- GitHub REST helpers (solo lectura, sin credenciales: el repo es público) ----
   function gh(path, options){
     options = options || {};
     var headers = Object.assign({ Accept: 'application/vnd.github+json' }, options.headers || {});
@@ -658,7 +658,7 @@
       .then(function(data){ runs = data.workflow_runs || []; flujoError=''; renderFlujo(); })
       .catch(function(e){
         flujoError = /rate limit/i.test(e.message)
-          ? 'GitHub ha limitado temporalmente las consultas pÃºblicas desde esta red (mÃ¡x. 60/hora sin iniciar sesiÃ³n). El historial de ejecuciones se recupera solo en unos minutos â€” no afecta a los envÃ­os de email.'
+          ? 'GitHub ha limitado temporalmente las consultas públicas desde esta red (máx. 60/hora sin iniciar sesión). El historial de ejecuciones se recupera solo en unos minutos — no afecta a los envíos de email.'
           : e.message;
         renderFlujo();
       });
@@ -678,13 +678,13 @@
   function flowStep(n, title, desc){
     return '<div class="flow-step"><span class="num tabular">'+n+'</span><h4>'+esc(title)+'</h4><p>'+esc(desc)+'</p></div>';
   }
-  function flowArrow(){ return '<div class="flow-arrow">â†’</div>'; }
+  function flowArrow(){ return '<div class="flow-arrow">→</div>'; }
   function runRowHtml(r){
     var info = statusInfo(r);
     return '<div class="run-row">' +
       '<span class="run-status-badge '+info.cls+'">'+info.label+'</span>' +
-      '<span class="run-date mono">'+fmtDateTime(r.created_at)+' Â· #'+r.run_number+'</span>' +
-      '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub â†—</a>' +
+      '<span class="run-date mono">'+fmtDateTime(r.created_at)+' · #'+r.run_number+'</span>' +
+      '<a href="'+r.html_url+'" target="_blank" rel="noopener">Ver en GitHub ↗</a>' +
     '</div>';
   }
   function computeListosHoy(){
@@ -718,63 +718,63 @@
     var maxCamp = Math.max.apply(null, Object.keys(listos.porCampana).map(function(k){return listos.porCampana[k];}).concat([1]));
     var html = '';
     html += '<div class="flow">' +
-      flowStep(1, 'ProspecciÃ³n', 'Apify / bÃºsquedas manuales encuentran negocios y empresas') +
+      flowStep(1, 'Prospección', 'Apify / búsquedas manuales encuentran negocios y empresas') +
       flowArrow() +
-      flowStep(2, 'CampaÃ±as', 'Cada lead se asigna a una campaÃ±a con su propia secuencia de emails') +
+      flowStep(2, 'Campañas', 'Cada lead se asigna a una campaña con su propia secuencia de emails') +
       flowArrow() +
-      flowStep(3, 'GitHub Actions', 'Solo se activa cuando pulsas "Ejecutar en GitHub" â€” revisa TODAS las campaÃ±as activas a la vez') +
+      flowStep(3, 'GitHub Actions', 'Solo se activa cuando pulsas "Ejecutar en GitHub" — revisa TODAS las campañas activas a la vez') +
       flowArrow() +
-      flowStep(4, 'Gmail', 'EnvÃ­a a cada lead listo el email de su prÃ³ximo toque, desde info@klyrex.es') +
+      flowStep(4, 'Gmail', 'Envía a cada lead listo el email de su próximo toque, desde info@klyrex.es') +
       flowArrow() +
-      flowStep(5, 'Supabase', 'Marca Contactado, avanza el toque y guarda la fecha de envÃ­o') +
+      flowStep(5, 'Supabase', 'Marca Contactado, avanza el toque y guarda la fecha de envío') +
     '</div>';
     html += '<div class="run-card">' +
       '<div class="run-head">' +
         '<div>' +
-          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Listos para el prÃ³ximo envÃ­o ahora mismo</div>' +
+          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Listos para el próximo envío ahora mismo</div>' +
           '<span class="mono" style="font-size:28px;font-weight:800;color:'+(listos.total>0?'var(--accent-strong)':'var(--text-dim)')+'">'+listos.total+'</span>' +
-          ' <span style="font-size:12px;color:var(--text-dim)">leads recibirÃ­an un email si ejecutas ahora</span>' +
+          ' <span style="font-size:12px;color:var(--text-dim)">leads recibirían un email si ejecutas ahora</span>' +
         '</div>' +
       '</div>' +
       (listos.total>0 ?
         campanas.filter(function(c){return listos.porCampana[c.id];}).map(function(c){
           return barRowHtml(c.nombre, listos.porCampana[c.id], maxCamp, campaignColor(c));
         }).join('')
-        : '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:6px">NingÃºn lead tiene un toque pendiente hoy (ya se les enviÃ³, o estÃ¡n esperando el plazo entre toques).</div>') +
-      '<div class="flujo-note">"Ejecutar en GitHub" procesa <b>todas</b> las campaÃ±as activas en la misma pasada â€” no solo una. Cada lead listo (de cualquier campaÃ±a) recibe el email de su siguiente toque; el resto se queda esperando su turno.</div>' +
+        : '<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:6px">Ningún lead tiene un toque pendiente hoy (ya se les envió, o están esperando el plazo entre toques).</div>') +
+      '<div class="flujo-note">"Ejecutar en GitHub" procesa <b>todas</b> las campañas activas en la misma pasada — no solo una. Cada lead listo (de cualquier campaña) recibe el email de su siguiente toque; el resto se queda esperando su turno.</div>' +
     '</div>';
     if(envioEstado && envioEstado.en_curso){
       var pctEnvio = envioEstado.total>0 ? Math.round((envioEstado.enviados/envioEstado.total)*100) : 0;
       html += '<div class="run-card">' +
-        '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:8px">ðŸ“¤ Enviando ahora mismo</div>' +
+        '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:8px">📤 Enviando ahora mismo</div>' +
         '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">' +
           '<span class="mono" style="font-size:22px;font-weight:800;color:var(--accent-strong)">'+envioEstado.enviados+' / '+envioEstado.total+'</span>' +
           '<span style="font-size:12px;color:var(--text-dim)">emails enviados ('+pctEnvio+'%)</span>' +
         '</div>' +
         '<div class="bar-track" style="height:10px"><div class="bar-fill" style="width:'+pctEnvio+'%;background:var(--accent)"></div></div>' +
-        '<div class="flujo-note" style="margin-top:10px">Hay una pausa entre cada email para no parecer spam, asÃ­ que con muchos leads puede tardar un buen rato. Puedes seguir usando el panel mientras tanto â€” esto se actualiza solo.</div>' +
+        '<div class="flujo-note" style="margin-top:10px">Hay una pausa entre cada email para no parecer spam, así que con muchos leads puede tardar un buen rato. Puedes seguir usando el panel mientras tanto — esto se actualiza solo.</div>' +
       '</div>';
     }
     html += '<div class="run-card">' +
       '<div class="run-head">' +
         '<div>' +
-          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Ãšltima ejecuciÃ³n</div>' +
+          '<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px">Última ejecución</div>' +
           (last ?
             '<span class="run-status-badge '+lastInfo.cls+'">'+lastInfo.label+'</span> ' +
-            '<span class="mono" style="font-size:12.5px;color:var(--text-dim)">'+fmtDateTime(last.created_at)+' Â· #'+last.run_number+'</span>'
-            : '<span style="color:var(--text-dim);font-size:13px">Sin ejecuciones todavÃ­a</span>') +
+            '<span class="mono" style="font-size:12.5px;color:var(--text-dim)">'+fmtDateTime(last.created_at)+' · #'+last.run_number+'</span>'
+            : '<span style="color:var(--text-dim);font-size:13px">Sin ejecuciones todavía</span>') +
         '</div>' +
         '<div style="display:flex;gap:8px">' +
-          '<button class="btn sm" id="btnRefreshRuns" title="Actualizar">â†»</button>' +
-          '<a class="btn primary" href="'+GITHUB_ACTIONS_URL+'" target="_blank" rel="noopener">â–¶ Ejecutar en GitHub â†—</a>' +
+          '<button class="btn sm" id="btnRefreshRuns" title="Actualizar">↻</button>' +
+          '<a class="btn primary" href="'+GITHUB_ACTIONS_URL+'" target="_blank" rel="noopener">▶ Ejecutar en GitHub ↗</a>' +
         '</div>' +
       '</div>' +
       (flujoError ? '<div style="color:var(--crit);font-size:12.5px;margin-bottom:10px">'+esc(flujoError)+'</div>' : '') +
-      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">El envÃ­o ya no es automÃ¡tico: solo se lanza cuando pulsas "Ejecutar en GitHub", que te lleva a la pÃ¡gina del workflow para lanzarlo con un clic ("Run workflow").</div>' +
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:14px">El envío ya no es automático: solo se lanza cuando pulsas "Ejecutar en GitHub", que te lleva a la página del workflow para lanzarlo con un clic ("Run workflow").</div>' +
       '<div class="run-list">' +
-        (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">TodavÃ­a no hay historial de ejecuciones.</div>') +
+        (runs.length ? runs.map(runRowHtml).join('') : '<div style="color:var(--text-dim);font-size:12.5px">Todavía no hay historial de ejecuciones.</div>') +
       '</div>' +
-      '<div class="flujo-note">El historial se lee directamente de GitHub (repositorio pÃºblico, sin claves en el cÃ³digo).</div>' +
+      '<div class="flujo-note">El historial se lee directamente de GitHub (repositorio público, sin claves en el código).</div>' +
     '</div>';
     elFlujo.innerHTML = html;
     var btnRefresh = document.getElementById('btnRefreshRuns');
@@ -809,7 +809,7 @@
     elContactos.innerHTML = '<div id="contactosBar"></div>'+
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
         '<th class="sel-head"><input type="checkbox" id="selectAllRows"></th>'+
-        '<th>Nombre</th><th>CampaÃ±a</th><th>Contacto</th><th>TelÃ©fono</th><th>Email</th><th>Ciudad</th><th>Provincia</th><th>Estado</th><th>Toque</th><th>Score</th>'+
+        '<th>Nombre</th><th>Campaña</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Ciudad</th><th>Provincia</th><th>Estado</th><th>Toque</th><th>Score</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
 
     elContactos.querySelectorAll('tbody tr[data-id]').forEach(function(tr){
@@ -861,8 +861,8 @@
     syncContactosSelectionUI(visibleIds);
   }
 
-  // Actualiza solo la barra de selecciÃ³n y el estado "checked" de las casillas
-  // ya existentes en el DOM, sin reconstruir la tabla â€” asÃ­ un arrastre rÃ¡pido
+  // Actualiza solo la barra de selección y el estado "checked" de las casillas
+  // ya existentes en el DOM, sin reconstruir la tabla — así un arrastre rápido
   // no se interrumpe por culpa de un re-render completo a mitad de camino.
   function syncContactosSelectionUI(visibleIds){
     var barBoxStyle = 'display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;border-radius:10px;padding:8px 12px;min-height:38px;box-sizing:border-box;border:1px solid ';
@@ -871,19 +871,19 @@
         '<span style="font-size:13px;font-weight:600">'+selectedIds.size+' seleccionados</span>'+
         '<div style="display:flex;gap:8px;align-items:center">'+
           '<select id="bulkCampanaSelect" class="sm">'+
-            '<option value="">Mover a campaÃ±aâ€¦</option>'+
-            '<option value="__ninguna__">Sin campaÃ±a</option>'+
+            '<option value="">Mover a campaña…</option>'+
+            '<option value="__ninguna__">Sin campaña</option>'+
             campanas.map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
           '</select>'+
           '<button class="btn sm primary" id="btnBulkMove">Mover</button>'+
-          '<button class="btn sm ghost" id="btnBulkClear">Cancelar selecciÃ³n</button>'+
+          '<button class="btn sm ghost" id="btnBulkClear">Cancelar selección</button>'+
         '</div>'+
       '</div>')
       : ('<div class="contactos-bar" style="'+barBoxStyle+'var(--border);background:var(--bg)">'+
-          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayÃºsculas+clic para seleccionar un rango.</span>'+
+          '<span style="font-size:11.5px;color:var(--text-dim)">Truco: haz clic y arrastra sobre la columna de la izquierda para seleccionar varias filas, o mayúsculas+clic para seleccionar un rango.</span>'+
           '<div style="display:flex;gap:8px;align-items:center">'+
-            '<button class="btn sm" id="btnVerifyEmails" title="Comprueba si el dominio de cada email existe y puede recibir correo">ðŸ” Verificar emails</button>'+
-            '<button class="btn sm" id="btnExportCsv">â¬‡ Exportar CSV</button>'+
+            '<button class="btn sm" id="btnVerifyEmails" title="Comprueba si el dominio de cada email existe y puede recibir correo">🔍 Verificar emails</button>'+
+            '<button class="btn sm" id="btnExportCsv">⬇ Exportar CSV</button>'+
           '</div>'+
         '</div>');
     var barEl = document.getElementById('contactosBar');
@@ -908,10 +908,10 @@
     if(btnBulkMove) btnBulkMove.addEventListener('click', function(){
       var sel = document.getElementById('bulkCampanaSelect');
       var val = sel.value;
-      if(!val){ alert('Elige antes una campaÃ±a en el desplegable.'); return; }
+      if(!val){ alert('Elige antes una campaña en el desplegable.'); return; }
       var ids = Array.from(selectedIds);
       var patch = val==='__ninguna__' ? {campana_id:null, toque:0, fecha_ultimo_envio:null} : {campana_id:val, toque:0, fecha_ultimo_envio:null};
-      btnBulkMove.disabled = true; btnBulkMove.textContent = 'Moviendoâ€¦';
+      btnBulkMove.disabled = true; btnBulkMove.textContent = 'Moviendo…';
       updateLeadsBulk(ids, patch).then(function(){
         selectedIds.clear();
       }).catch(function(e){
@@ -922,10 +922,10 @@
     });
   }
 
-  // Comprueba, dominio a dominio, si el servidor de correo existe (vÃ­a una
-  // funciÃ³n de Supabase que resuelve registros MX). Los contactos cuyo
+  // Comprueba, dominio a dominio, si el servidor de correo existe (vía una
+  // función de Supabase que resuelve registros MX). Los contactos cuyo
   // dominio no tenga MX se marcan como "Baja" para no volver a intentarles
-  // un envÃ­o que acabarÃ­a rebotando.
+  // un envío que acabaría rebotando.
   function verifyEmails(btn){
     var candidatos = leads.filter(function(l){ return l.email && norm(l.estado)!=='baja'; });
     if(candidatos.length===0){ alert('No hay contactos con email para verificar.'); return; }
@@ -935,12 +935,12 @@
       if(d){ (domains[d] = domains[d]||[]).push(l.id); }
     });
     var domainList = Object.keys(domains);
-    if(!confirm('Se van a comprobar '+domainList.length+' dominios distintos de '+candidatos.length+' contactos.\n\nLos que no tengan un servidor de correo vÃ¡lido se marcarÃ¡n como "Baja" para no volver a intentarles un envÃ­o. Â¿Continuar?')) return;
+    if(!confirm('Se van a comprobar '+domainList.length+' dominios distintos de '+candidatos.length+' contactos.\n\nLos que no tengan un servidor de correo válido se marcarán como "Baja" para no volver a intentarles un envío. ¿Continuar?')) return;
 
     btn.disabled = true;
     var done = 0;
     var invalidDomains = [];
-    function updateProgress(){ btn.textContent = 'ðŸ” Verificando '+done+'/'+domainList.length+'â€¦'; }
+    function updateProgress(){ btn.textContent = '🔍 Verificando '+done+'/'+domainList.length+'…'; }
     updateProgress();
 
     var idx = 0;
@@ -951,7 +951,7 @@
       return fetch(SUPABASE_URL + '/functions/v1/validar-dominio?domain=' + encodeURIComponent(domain))
         .then(function(res){ return res.json(); })
         .then(function(data){ if(!data.valido) invalidDomains.push(domain); })
-        .catch(function(){ /* si falla la comprobaciÃ³n en sÃ­, no lo marcamos como invÃ¡lido */ })
+        .catch(function(){ /* si falla la comprobación en sí, no lo marcamos como inválido */ })
         .finally(function(){ done++; updateProgress(); return next(); });
     }
     var workers = [];
@@ -959,24 +959,24 @@
 
     Promise.all(workers).then(function(){
       if(invalidDomains.length===0){
-        alert('Comprobados '+domainList.length+' dominios â€” todos parecen vÃ¡lidos.');
-        btn.disabled = false; btn.textContent = 'ðŸ” Verificar emails';
+        alert('Comprobados '+domainList.length+' dominios — todos parecen válidos.');
+        btn.disabled = false; btn.textContent = '🔍 Verificar emails';
         return;
       }
       var idsAfectados = [];
       invalidDomains.forEach(function(d){ idsAfectados = idsAfectados.concat(domains[d]); });
-      btn.textContent = 'Marcando '+idsAfectados.length+' como bajaâ€¦';
+      btn.textContent = 'Marcando '+idsAfectados.length+' como baja…';
       sb('leads?id=in.('+idsAfectados.join(',')+')', {
         method:'PATCH',
         headers:{'Content-Type':'application/json', Prefer:'return=minimal'},
         body: JSON.stringify({estado:'baja', updated_at: new Date().toISOString()})
       }).then(function(){
-        alert('Comprobados '+domainList.length+' dominios. '+invalidDomains.length+' no tienen servidor de correo vÃ¡lido ('+idsAfectados.length+' contactos) y se han marcado como "Baja".');
+        alert('Comprobados '+domainList.length+' dominios. '+invalidDomains.length+' no tienen servidor de correo válido ('+idsAfectados.length+' contactos) y se han marcado como "Baja".');
         fetchLeads();
       }).catch(function(e){
-        alert('Se detectaron '+idsAfectados.length+' contactos con dominio invÃ¡lido, pero hubo un error al marcarlos: '+e.message);
+        alert('Se detectaron '+idsAfectados.length+' contactos con dominio inválido, pero hubo un error al marcarlos: '+e.message);
       }).finally(function(){
-        btn.disabled = false; btn.textContent = 'ðŸ” Verificar emails';
+        btn.disabled = false; btn.textContent = '🔍 Verificar emails';
       });
     });
   }
@@ -1006,7 +1006,7 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
-  // ---- CampaÃ±as (CRUD completo) ----
+  // ---- Campañas (CRUD completo) ----
   function funnelRowHtml(label, val, max, color){
     var pct = max>0 ? Math.round((val/max)*100) : 0;
     return '<div class="funnel-row">'+
@@ -1018,8 +1018,8 @@
 
   var CONDICION_LABELS = {
     siempre: 'Siempre',
-    no_abierto_anterior: 'Solo si NO abriÃ³ el anterior',
-    abierto_no_respondido_anterior: 'Solo si lo abriÃ³ pero no respondiÃ³'
+    no_abierto_anterior: 'Solo si NO abrió el anterior',
+    abierto_no_respondido_anterior: 'Solo si lo abrió pero no respondió'
   };
 
   function toqueCardHtml(t, idx){
@@ -1032,16 +1032,16 @@
     return '<div class="toque-card" data-toque-id="'+t.id+'">'+
       '<div class="toque-head">'+
         '<span class="toque-num">TOQUE '+(idx+1)+'</span>'+
-        '<label class="toque-wait">Esperar <input type="number" min="0" class="toque-wait-input" data-toque-wait="'+t.id+'" value="'+t.espera_dias+'"> dÃ­as</label>'+
-        '<button class="btn sm danger right" data-toque-delete="'+t.id+'" title="Eliminar toque">âœ•</button>'+
+        '<label class="toque-wait">Esperar <input type="number" min="0" class="toque-wait-input" data-toque-wait="'+t.id+'" value="'+t.espera_dias+'"> días</label>'+
+        '<button class="btn sm danger right" data-toque-delete="'+t.id+'" title="Eliminar toque">✕</button>'+
       '</div>'+
       condicionHtml+
       '<input class="toque-subject" data-toque-subject="'+t.id+'" value="'+esc(t.asunto)+'" placeholder="Asunto del email">'+
       '<div class="toque-toolbar">'+
         '<button type="button" data-rte-cmd="bold" data-rte-target="'+t.id+'" title="Negrita"><b>B</b></button>'+
         '<button type="button" data-rte-cmd="italic" data-rte-target="'+t.id+'" title="Cursiva"><i>I</i></button>'+
-        '<button type="button" data-rte-cmd="createLink" data-rte-target="'+t.id+'" title="Insertar enlace">ðŸ”—</button>'+
-        '<button type="button" data-rte-cmd="insertImage" data-rte-target="'+t.id+'" title="Insertar imagen (por URL)">ðŸ–¼</button>'+
+        '<button type="button" data-rte-cmd="createLink" data-rte-target="'+t.id+'" title="Insertar enlace">🔗</button>'+
+        '<button type="button" data-rte-cmd="insertImage" data-rte-target="'+t.id+'" title="Insertar imagen (por URL)">🖼</button>'+
       '</div>'+
       '<div class="toque-body-rich" contenteditable="true" data-toque-body="'+t.id+'" data-placeholder="Cuerpo del email. Variables: {negocio} {contacto} {ciudad}">'+(t.cuerpo||'')+'</div>'+
     '</div>';
@@ -1074,10 +1074,10 @@
         '<span class="camp-pipe-name">'+esc(campana.nombre)+'</span>'+
         '<div class="camp-card-actions">'+
           '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
-          '<button class="btn sm danger" data-camp-delete="'+campana.id+'" title="Eliminar campaÃ±a">âœ•</button>'+
+          '<button class="btn sm danger" data-camp-delete="'+campana.id+'" title="Eliminar campaña">✕</button>'+
         '</div>'+
       '</div>'+
-      '<div class="camp-pipe-stats">'+s.campLeads.length+' leads Â· '+toques.length+' toques Â· '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      '<div class="camp-pipe-stats">'+s.campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
       '<div class="camp-pipe-funnel">'+
         '<span class="pf-chip ok">'+s.respondidos+' respondidos</span>'+
         '<span class="pf-chip">'+s.enCurso+' en curso</span>'+
@@ -1087,9 +1087,9 @@
   }
 
   function renderCampanas(){
-    var html = '<div class="camp-toolbar"><button class="btn primary" id="btnNewCampana">+ Nueva campaÃ±a</button></div>';
+    var html = '<div class="camp-toolbar"><button class="btn primary" id="btnNewCampana">+ Nueva campaña</button></div>';
     if(campanas.length===0){
-      html += '<div class="empty-state"><div style="font-weight:600;color:var(--text)">TodavÃ­a no hay campaÃ±as</div><div style="font-size:13px">Crea la primera para definir su secuencia de emails.</div></div>';
+      html += '<div class="empty-state"><div style="font-weight:600;color:var(--text)">Todavía no hay campañas</div><div style="font-size:13px">Crea la primera para definir su secuencia de emails.</div></div>';
     } else {
       html += '<div class="camp-list">'+campanas.map(campanaCardHtml).join('')+'</div>';
     }
@@ -1118,50 +1118,50 @@
           '<div class="switch'+(campana.activa?' on':'')+'" data-camp-toggle-modal="'+campana.id+'" title="'+(campana.activa?'Activa (clic para pausar)':'Pausada (clic para activar)')+'"></div>'+
         '</div>'+
       '</div>'+
-      '<div class="camp-sub">'+s.campLeads.length+' leads Â· '+toques.length+' toques Â· '+(campana.activa?'Activa':'Pausada')+'</div>'+
+      '<div class="camp-sub">'+s.campLeads.length+' leads · '+toques.length+' toques · '+(campana.activa?'Activa':'Pausada')+'</div>'+
       funnelHtml+
       '<div class="camp-foot"><span>Respondidos: <b>'+s.respondidos+'</b></span><span>Bajas: <b>'+s.bajas+'</b></span></div>'+
       '<div class="toque-list">'+toques.map(toqueCardHtml).join('')+'</div>'+
-      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ AÃ±adir toque</button>'+
+      '<button class="btn sm camp-add-toque" data-camp-add-toque="'+campana.id+'">+ Añadir toque</button>'+
       '<div class="modal-actions">'+
-        '<button class="btn danger" data-camp-delete-modal="'+campana.id+'">Eliminar campaÃ±a</button>'+
+        '<button class="btn danger" data-camp-delete-modal="'+campana.id+'">Eliminar campaña</button>'+
         '<div class="right"><button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cerrar</button></div>'+
       '</div>';
     elOverlay.hidden = false;
   }
 
   var TOQUE_TEMPLATES = [
-    {espera:0, condicion:'siempre', asunto:'Una idea rÃ¡pida para {negocio}', cuerpo:'Hola {contacto},<br><br>He visto {negocio} en {ciudad} y creo que podemos ayudaros a conseguir mÃ¡s clientes sin complicaros la vida.<br><br>Â¿TenÃ©is 15 minutos esta semana para comentarlo?<br><br>Un saludo,<br>Ignacio'},
-    {espera:1, condicion:'no_abierto_anterior', asunto:'Â¿Te llegÃ³ mi email, {negocio}?', cuerpo:'Hola {contacto},<br><br>No sÃ© si te llegÃ³ mi mensaje de ayer, por si se perdiÃ³ te lo reenvÃ­o. Seguimos pensando que podrÃ­amos ayudaros con {negocio}.<br><br>Â¿Te viene bien una llamada corta esta semana?<br><br>Un saludo,<br>Ignacio'},
-    {espera:1, condicion:'abierto_no_respondido_anterior', asunto:'Re: Una idea rÃ¡pida para {negocio}', cuerpo:'Hola {contacto},<br><br>Vi que abriste mi email de ayer â€” no querÃ­a dejarlo ahÃ­. Â¿QuÃ© te parece si lo hablamos 15 minutos esta semana?<br><br>Un saludo,<br>Ignacio'},
-    {espera:7, condicion:'siempre', asunto:'Â¿Seguimos en contacto, {negocio}?', cuerpo:'Hola {contacto},<br><br>No quiero insistir mÃ¡s de la cuenta. Si surge algo en el futuro, no dudÃ©is en escribirme â€” os dejo mi contacto por si acaso.<br><br>Un saludo,<br>Ignacio'},
+    {espera:0, condicion:'siempre', asunto:'Una idea rápida para {negocio}', cuerpo:'Hola {contacto},<br><br>He visto {negocio} en {ciudad} y creo que podemos ayudaros a conseguir más clientes sin complicaros la vida.<br><br>¿Tenéis 15 minutos esta semana para comentarlo?<br><br>Un saludo,<br>Ignacio'},
+    {espera:1, condicion:'no_abierto_anterior', asunto:'¿Te llegó mi email, {negocio}?', cuerpo:'Hola {contacto},<br><br>No sé si te llegó mi mensaje de ayer, por si se perdió te lo reenvío. Seguimos pensando que podríamos ayudaros con {negocio}.<br><br>¿Te viene bien una llamada corta esta semana?<br><br>Un saludo,<br>Ignacio'},
+    {espera:1, condicion:'abierto_no_respondido_anterior', asunto:'Re: Una idea rápida para {negocio}', cuerpo:'Hola {contacto},<br><br>Vi que abriste mi email de ayer — no quería dejarlo ahí. ¿Qué te parece si lo hablamos 15 minutos esta semana?<br><br>Un saludo,<br>Ignacio'},
+    {espera:7, condicion:'siempre', asunto:'¿Seguimos en contacto, {negocio}?', cuerpo:'Hola {contacto},<br><br>No quiero insistir más de la cuenta. Si surge algo en el futuro, no dudéis en escribirme — os dejo mi contacto por si acaso.<br><br>Un saludo,<br>Ignacio'},
     {espera:14, condicion:'siempre', asunto:'Cierro el contacto por ahora', cuerpo:'Hola {contacto},<br><br>Dejo de insistir, pero la puerta queda abierta cuando os venga bien.<br><br>Un saludo,<br>Ignacio'}
   ];
 
   function openNewCampana(){
     elModal.innerHTML =
-      '<h2>Nueva campaÃ±a</h2>'+
+      '<h2>Nueva campaña</h2>'+
       '<div class="field-row">'+
-        '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios â€” oferta verano"></div>'+
+        '<div class="field"><label>Nombre</label><input type="text" id="nc_nombre" placeholder="Ej. Gimnasios — oferta verano"></div>'+
         '<div class="field"><label>Toques en la secuencia</label>'+
           '<select id="nc_toques">'+
-            '<option value="1">1 â€” un solo email</option>'+
-            '<option value="2">2 â€” email + recordatorio</option>'+
-            '<option value="3" selected>3 â€” recomendado, con ramas</option>'+
+            '<option value="1">1 — un solo email</option>'+
+            '<option value="2">2 — email + recordatorio</option>'+
+            '<option value="3" selected>3 — recomendado, con ramas</option>'+
             '<option value="4">4</option>'+
             '<option value="5">5</option>'+
           '</select>'+
         '</div>'+
       '</div>'+
       '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.6;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px">'+
-        'Se crea ya con una secuencia de ejemplo escrita, lista para editar. Con 3 toques, el 2Âº y 3Âº se ramifican: uno se envÃ­a si NO han abierto el primero, el otro si lo abrieron pero no contestaron. Puedes cambiar esto en cada toque. Variables que se rellenan solas: '+
+        'Se crea ya con una secuencia de ejemplo escrita, lista para editar. Con 3 toques, el 2º y 3º se ramifican: uno se envía si NO han abierto el primero, el otro si lo abrieron pero no contestaron. Puedes cambiar esto en cada toque. Variables que se rellenan solas: '+
         '<span class="mono" style="color:var(--accent-strong)">{negocio}</span> '+
         '<span class="mono" style="color:var(--accent-strong)">{contacto}</span> '+
         '<span class="mono" style="color:var(--accent-strong)">{ciudad}</span>'+
       '</div>'+
       '<div class="modal-actions">'+
         '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
-        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNewCampana()">Crear campaÃ±a</button></div>'+
+        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNewCampana()">Crear campaña</button></div>'+
       '</div>';
     elOverlay.hidden = false;
     var nameInput = document.getElementById('nc_nombre');
@@ -1191,7 +1191,7 @@
     }
     var delCamp = e.target.closest('[data-camp-delete]');
     if(delCamp){
-      if(confirm('Â¿Eliminar esta campaÃ±a y todos sus toques? Los leads asignados se quedarÃ¡n sin campaÃ±a.')){
+      if(confirm('¿Eliminar esta campaña y todos sus toques? Los leads asignados se quedarán sin campaña.')){
         deleteCampana(delCamp.getAttribute('data-camp-delete'));
       }
       return;
@@ -1213,7 +1213,7 @@
     }
     var delCampModal = e.target.closest('[data-camp-delete-modal]');
     if(delCampModal){
-      if(confirm('Â¿Eliminar esta campaÃ±a y todos sus toques? Los leads asignados se quedarÃ¡n sin campaÃ±a.')){
+      if(confirm('¿Eliminar esta campaña y todos sus toques? Los leads asignados se quedarán sin campaña.')){
         deleteCampana(delCampModal.getAttribute('data-camp-delete-modal')).then(closeModal);
       }
       return;
@@ -1228,7 +1228,7 @@
     }
     var delToque = e.target.closest('[data-toque-delete]');
     if(delToque){
-      if(confirm('Â¿Eliminar este toque de la secuencia?')){
+      if(confirm('¿Eliminar este toque de la secuencia?')){
         var campNameEl = elModal.querySelector('[data-camp-name]');
         var campId2 = campNameEl ? campNameEl.getAttribute('data-camp-name') : null;
         deleteToque(delToque.getAttribute('data-toque-delete')).then(function(){ if(campId2) openCampanaConfig(campId2); });
@@ -1246,7 +1246,7 @@
         var url = prompt('URL del enlace (ej. https://klyrex.es):');
         if(url) document.execCommand('createLink', false, url);
       } else if(cmd==='insertImage'){
-        var imgUrl = prompt('URL de la imagen (debe estar ya subida en algÃºn sitio, ej. Google Drive pÃºblico, Imgurâ€¦):');
+        var imgUrl = prompt('URL de la imagen (debe estar ya subida en algún sitio, ej. Google Drive público, Imgur…):');
         if(imgUrl) document.execCommand('insertImage', false, imgUrl);
       } else {
         document.execCommand(cmd, false, null);
@@ -1303,8 +1303,8 @@
 
     var html = '<div class="stats">'+
       '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
-      '<div class="stat ok"><span class="n tabular">'+tasaConv+'%</span><span class="l">Tasa de conversiÃ³n</span></div>'+
-      '<div class="stat blue"><span class="n tabular">'+nuevosSemana+'</span><span class="l">Nuevos (7 dÃ­as)</span></div>'+
+      '<div class="stat ok"><span class="n tabular">'+tasaConv+'%</span><span class="l">Tasa de conversión</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+nuevosSemana+'</span><span class="l">Nuevos (7 días)</span></div>'+
       '<div class="stat"><span class="n tabular">'+scoreMedio+'</span><span class="l">Score medio</span></div>'+
     '</div>';
 
@@ -1326,26 +1326,26 @@
         return MIN_MUESTRA - n;
       }).concat([MIN_MUESTRA]));
       insight = campanas.length===0
-        ? 'Crea una campaÃ±a y asÃ­gnale leads para empezar a ver quÃ© funciona mejor.'
-        : 'TodavÃ­a no hay suficientes leads por campaÃ±a (mÃ­nimo '+MIN_MUESTRA+') para destacar cuÃ¡l va mejor. Faltan datos para que la comparaciÃ³n sea fiable, no por falta de actividad.';
+        ? 'Crea una campaña y asígnale leads para empezar a ver qué funciona mejor.'
+        : 'Todavía no hay suficientes leads por campaña (mínimo '+MIN_MUESTRA+') para destacar cuál va mejor. Faltan datos para que la comparación sea fiable, no por falta de actividad.';
     } else {
       var lider = conDatos[0];
       var resto = conDatos.slice(1);
       var mediaResto = resto.length ? resto.reduce(function(s,r){return s+r.tasa;},0)/resto.length : 0;
       var multiplo = mediaResto>0 ? (lider.tasa/mediaResto) : null;
-      insight = 'ðŸ† <b>'+esc(lider.campana.nombre)+'</b> es tu mejor campaÃ±a ahora mismo: convierte un <b>'+Math.round(lider.tasa*100)+'%</b>'+
-        (multiplo && multiplo>1.15 ? ' â€” '+multiplo.toFixed(1)+'Ã— mejor que el resto.' : (resto.length ? '.' : ' (todavÃ­a es la Ãºnica con datos suficientes).'));
+      insight = '🏆 <b>'+esc(lider.campana.nombre)+'</b> es tu mejor campaña ahora mismo: convierte un <b>'+Math.round(lider.tasa*100)+'%</b>'+
+        (multiplo && multiplo>1.15 ? ' — '+multiplo.toFixed(1)+'× mejor que el resto.' : (resto.length ? '.' : ' (todavía es la única con datos suficientes).'));
     }
 
     html += '<div class="rank-card">'+
-      '<div class="rank-head"><h3>ðŸ† QuÃ© campaÃ±a va mejor</h3></div>'+
-      '<div class="rank-sub">Se recalcula solo segÃºn entran mÃ¡s leads y resultados. MÃ­nimo '+MIN_MUESTRA+' leads por campaÃ±a para entrar en la comparaciÃ³n.</div>'+
+      '<div class="rank-head"><h3>🏆 Qué campaña va mejor</h3></div>'+
+      '<div class="rank-sub">Se recalcula solo según entran más leads y resultados. Mínimo '+MIN_MUESTRA+' leads por campaña para entrar en la comparación.</div>'+
       '<div class="rank-insight">'+insight+'</div>'+
       (ordenados.length===0 ? '' : '<div class="rank-list">'+
         ordenados.map(function(r, i){
           var color = campaignColor(r.campana);
           var posClass = r.suficiente && i===0 ? ' top1' : r.suficiente && i===1 ? ' top2' : r.suficiente && i===2 ? ' top3' : '';
-          var posIcon = posClass===' top1' ? 'ðŸ¥‡' : posClass===' top2' ? 'ðŸ¥ˆ' : posClass===' top3' ? 'ðŸ¥‰' : (i+1);
+          var posIcon = posClass===' top1' ? '🥇' : posClass===' top2' ? '🥈' : posClass===' top3' ? '🥉' : (i+1);
           var pct = Math.round(r.tasa*100);
           return '<div class="rank-row'+(r.suficiente?'':' rank-lowdata')+posClass+'">'+
             '<div class="rank-pos">'+posIcon+'</div>'+
@@ -1364,19 +1364,19 @@
     html += '<div class="chart-card"><h3>Leads por estado del pipeline</h3>'+
       STATUSES.map(function(s){
         var color = s.key==='ganado' ? 'var(--ok)' : s.key==='perdido' ? 'var(--crit)' : 'var(--node-blue)';
-        var label = s.key==='ganado' ? 'âœ“ ' + s.label : s.key==='perdido' ? 'âœ— ' + s.label : s.label;
+        var label = s.key==='ganado' ? '✓ ' + s.label : s.key==='perdido' ? '✗ ' + s.label : s.label;
         return barRowHtml(label, porEstado[s.key], maxEstado, color);
       }).join('')+
     '</div>';
 
-    html += '<div class="chart-card"><h3>Leads por campaÃ±a</h3>'+
-      (porCampana.length===0 ? '<div style="font-size:12.5px;color:var(--text-dim)">TodavÃ­a no hay campaÃ±as.</div>' :
+    html += '<div class="chart-card"><h3>Leads por campaña</h3>'+
+      (porCampana.length===0 ? '<div style="font-size:12.5px;color:var(--text-dim)">Todavía no hay campañas.</div>' :
         porCampana.map(function(x){ return barRowHtml(x.campana.nombre, x.count, maxCamp, campaignColor(x.campana)); }).join('')
       )+
     '</div>';
 
     html += '<div class="chart-card"><h3>Leads por origen</h3>'+
-      barRowHtml('ProspecciÃ³n (outbound)', outbound, maxOrigen, 'var(--node-orange)')+
+      barRowHtml('Prospección (outbound)', outbound, maxOrigen, 'var(--node-orange)')+
       barRowHtml('Entrante (inbound)', inbound, maxOrigen, 'var(--node-blue)')+
     '</div>';
 
@@ -1389,7 +1389,7 @@
     renderProvinciaFilter();
     if(currentMainTab === 'pipeline') renderBoard();
     // Si hay contactos seleccionados, no reconstruimos la tabla en cada
-    // refresco automÃ¡tico (cada 10s): si no, se pierde la campaÃ±a elegida
+    // refresco automático (cada 10s): si no, se pierde la campaña elegida
     // en el desplegable justo antes de pulsar "Mover" y parece que no hace nada.
     if(currentMainTab === 'contactos' && selectedIds.size===0) renderContactos();
     if(currentMainTab === 'campanas') renderCampanas();
@@ -1405,8 +1405,8 @@
     var ganados = leads.filter(function(l){return norm(l.estado)==='ganado';}).length;
     elStats.innerHTML =
       '<div class="stat"><span class="n tabular">'+total+'</span><span class="l">Total leads</span></div>'+
-      '<div class="stat blue"><span class="n tabular">'+activas+'</span><span class="l">CampaÃ±as activas</span></div>'+
-      '<div class="stat"><span class="n tabular">'+sinCampana+'</span><span class="l">Sin campaÃ±a</span></div>'+
+      '<div class="stat blue"><span class="n tabular">'+activas+'</span><span class="l">Campañas activas</span></div>'+
+      '<div class="stat"><span class="n tabular">'+sinCampana+'</span><span class="l">Sin campaña</span></div>'+
       '<div class="stat ok"><span class="n tabular">'+ganados+'</span><span class="l">Ganados</span></div>';
   }
 
@@ -1449,8 +1449,8 @@
       elBoard.innerHTML =
         '<div class="empty-state">'+
           '<div class="radar-mark" aria-hidden="true" style="width:76px;height:76px"></div>'+
-          '<div class="display" style="font-size:16px;font-weight:600;color:var(--text)">TodavÃ­a no hay leads</div>'+
-          '<div style="font-size:13px;max-width:360px">AÃ±ade el primero a mano, o pide bÃºsquedas de prospecciÃ³n para llenarlo automÃ¡ticamente.</div>'+
+          '<div class="display" style="font-size:16px;font-weight:600;color:var(--text)">Todavía no hay leads</div>'+
+          '<div style="font-size:13px;max-width:360px">Añade el primero a mano, o pide búsquedas de prospección para llenarlo automáticamente.</div>'+
           '<button class="btn primary" onclick="RadarKlyrex.openNew()">+ Nuevo lead</button>'+
         '</div>';
       return;
@@ -1461,7 +1461,7 @@
       var headClass = st.key==='ganado' ? ' ok' : st.key==='perdido' ? ' crit' : '';
       var withScore = items.filter(function(l){return l.score!=null;});
       var avgScore = withScore.length ? Math.round(withScore.reduce(function(s,l){return s+Number(l.score||0);},0)/withScore.length) : null;
-      var avgBadge = avgScore!=null ? '<span class="avg-score '+scoreClass(avgScore)+'" title="Score medio de esta fase">Ã˜ '+avgScore+'</span>' : '';
+      var avgBadge = avgScore!=null ? '<span class="avg-score '+scoreClass(avgScore)+'" title="Score medio de esta fase">Ø '+avgScore+'</span>' : '';
       html += '<div class="col" data-status="'+st.key+'">';
       html += '<div class="col-head'+headClass+'"><span>'+st.label+'</span><span class="head-stats">'+avgBadge+'<span class="count tabular">'+items.length+'</span></span></div>';
       html += '<div class="col-body">';
@@ -1490,7 +1490,7 @@
 
   function campTagHtml(campId){
     var c = campanaById(campId);
-    if(!c) return '<span class="camp-tag"><i style="background:var(--text-dim)"></i>Sin campaÃ±a</span>';
+    if(!c) return '<span class="camp-tag"><i style="background:var(--text-dim)"></i>Sin campaña</span>';
     var color = campaignColor(c);
     return '<span class="camp-tag" title="'+esc(c.nombre)+'"><i style="background:'+color+'"></i>'+esc(c.nombre)+'</span>';
   }
@@ -1505,7 +1505,7 @@
     var metaParts = [];
     if(l.ciudad) metaParts.push('<span>'+esc(l.ciudad)+'</span>');
     if(l.contacto) metaParts.push('<span>'+esc(l.contacto)+'</span>');
-    var metaHtml = metaParts.join('<span class="dot-sep">Â·</span>');
+    var metaHtml = metaParts.join('<span class="dot-sep">·</span>');
     return (
       '<div class="card" draggable="true" data-id="'+l.id+'" style="border-left-color:'+borderColor+'">'+
         '<div class="card-top">'+
@@ -1560,10 +1560,10 @@
     l = l || {};
     return (
       '<div class="field"><label>Nombre empresa / negocio</label>'+
-        '<input type="text" id="f_name" value="'+esc(l.nombre)+'" placeholder="Ej. PanaderÃ­a San Juan"></div>'+
-      '<div class="field"><label>CampaÃ±a</label>'+
+        '<input type="text" id="f_name" value="'+esc(l.nombre)+'" placeholder="Ej. Panadería San Juan"></div>'+
+      '<div class="field"><label>Campaña</label>'+
         '<select id="f_campana">'+
-          '<option value="">Sin campaÃ±a</option>'+
+          '<option value="">Sin campaña</option>'+
           campanas.filter(function(c){return c.activa;}).map(function(c){
             return '<option value="'+c.id+'"'+(l.campana_id===c.id?' selected':'')+'>'+esc(c.nombre)+'</option>';
           }).join('')+
@@ -1576,13 +1576,13 @@
         '<div class="field"><label>Provincia</label><input type="text" id="f_provincia" value="'+esc(l.provincia)+'"></div>'+
       '</div>'+
       '<div class="field-row">'+
-        '<div class="field"><label>TelÃ©fono</label><input type="tel" id="f_phone" value="'+esc(l.telefono)+'"></div>'+
+        '<div class="field"><label>Teléfono</label><input type="tel" id="f_phone" value="'+esc(l.telefono)+'"></div>'+
         '<div class="field"><label>Email</label><input type="email" id="f_email" value="'+esc(l.email)+'"></div>'+
       '</div>'+
       '<div class="field-row">'+
         '<div class="field"><label>Origen</label>'+
           '<select id="f_source">'+
-            '<option value="outbound"'+(l.origen==='outbound'||!l.origen?' selected':'')+'>ProspecciÃ³n (outbound)</option>'+
+            '<option value="outbound"'+(l.origen==='outbound'||!l.origen?' selected':'')+'>Prospección (outbound)</option>'+
             '<option value="inbound"'+(l.origen==='inbound'?' selected':'')+'>Entrante (inbound)</option>'+
           '</select></div>'+
         '<div class="field"><label>Score (0-100)</label><input type="number" id="f_score" min="0" max="100" value="'+(l.score!=null?l.score:50)+'"></div>'+
@@ -1601,7 +1601,7 @@
       fieldsHtml({})+
       '<div class="modal-actions">'+
         '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
-        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNew()">AÃ±adir lead</button></div>'+
+        '<div class="right"><button class="btn primary" onclick="RadarKlyrex.saveNew()">Añadir lead</button></div>'+
       '</div>';
     elOverlay.hidden = false;
   }
@@ -1668,7 +1668,7 @@
   var FIELD_DEFS = [
     {key:'nombre', label:'Nombre / Empresa', aliases:['nombre','name','empresa','negocio','company','business']},
     {key:'contacto', label:'Persona de contacto', aliases:['contacto','contact','persona']},
-    {key:'telefono', label:'TelÃ©fono', aliases:['telefono','phone','tel','movil']},
+    {key:'telefono', label:'Teléfono', aliases:['telefono','phone','tel','movil']},
     {key:'email', label:'Email', aliases:['email','correo','mail','e-mail']},
     {key:'ciudad', label:'Ciudad', aliases:['ciudad','city','localidad','poblacion']},
     {key:'provincia', label:'Provincia', aliases:['provincia','province','state','region']},
@@ -1713,7 +1713,7 @@
       '<h2>Importar desde Google Sheets</h2>'+
       '<div class="field"><label>Enlace CSV publicado</label>'+
         '<input type="text" id="imp_url" placeholder="https://docs.google.com/.../pub?output=csv"></div>'+
-      '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.5">En Google Sheets: Archivo â†’ Compartir â†’ Publicar en la web â†’ elige la hoja y formato CSV â†’ Publicar. Pega aquÃ­ el enlace generado.</div>'+
+      '<div style="font-size:11.5px;color:var(--text-dim);line-height:1.5">En Google Sheets: Archivo → Compartir → Publicar en la web → elige la hoja y formato CSV → Publicar. Pega aquí el enlace generado.</div>'+
       '<div class="modal-actions">'+
         '<button class="btn ghost" onclick="RadarKlyrex.closeModal()">Cancelar</button>'+
         '<div class="right"><button class="btn primary" id="btnLoadCsv">Cargar</button></div>'+
@@ -1727,7 +1727,7 @@
     var url = urlEl.value.trim();
     if(!url) return;
     var btn = document.getElementById('btnLoadCsv');
-    btn.disabled = true; btn.textContent = 'Cargandoâ€¦';
+    btn.disabled = true; btn.textContent = 'Cargando…';
     fetch(url).then(function(res){
       if(!res.ok) throw new Error('HTTP '+res.status);
       return res.text();
@@ -1737,7 +1737,7 @@
       importData = {headers: rows[0], rows: rows.slice(1).filter(function(r){ return r.some(function(c){return c.trim()!=='';}); })};
       openImportMapping();
     }).catch(function(e){
-      alert('No se pudo cargar el CSV: '+e.message+'\n\nComprueba que la hoja estÃ© publicada en la web (no solo compartida) y que el enlace sea el de formato CSV.');
+      alert('No se pudo cargar el CSV: '+e.message+'\n\nComprueba que la hoja esté publicada en la web (no solo compartida) y que el enlace sea el de formato CSV.');
       btn.disabled = false; btn.textContent = 'Cargar';
     });
   }
@@ -1746,7 +1746,7 @@
     var headers = importData.headers;
     var fieldSelects = FIELD_DEFS.map(function(f){
       var guess = guessColumn(headers, f.aliases);
-      var opts = '<option value="-1">â€” No importar â€”</option>'+headers.map(function(h,i){
+      var opts = '<option value="-1">— No importar —</option>'+headers.map(function(h,i){
         return '<option value="'+i+'"'+(i===guess?' selected':'')+'>'+esc(h)+'</option>';
       }).join('');
       return '<div class="field"><label>'+f.label+'</label><select data-imp-field="'+f.key+'">'+opts+'</select></div>';
@@ -1756,8 +1756,8 @@
       '<h2>Importar '+importData.rows.length+' leads</h2>'+
       '<div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px">'+headers.length+' columnas detectadas. Revisa que cada campo apunte a la columna correcta.</div>'+
       fieldSelects+
-      '<div class="field"><label>Asignar a campaÃ±a</label><select id="imp_campana">'+
-        '<option value="">Sin campaÃ±a</option>'+
+      '<div class="field"><label>Asignar a campaña</label><select id="imp_campana">'+
+        '<option value="">Sin campaña</option>'+
         campanas.filter(function(c){return c.activa;}).map(function(c){return '<option value="'+c.id+'">'+esc(c.nombre)+'</option>';}).join('')+
       '</select></div>'+
       '<div class="modal-actions">'+
@@ -1775,7 +1775,7 @@
     });
     var campId = document.getElementById('imp_campana').value || null;
     var btn = document.getElementById('btnConfirmImport');
-    btn.disabled = true; btn.textContent = 'Importandoâ€¦';
+    btn.disabled = true; btn.textContent = 'Importando…';
 
     var leadsToImport = importData.rows.map(function(row){
       var lead = {estado:'nuevo', toque:0, origen:'outbound', campana_id: campId, segmento:'web'};
@@ -1787,7 +1787,7 @@
       return lead;
     }).filter(function(l){ return l.nombre !== 'Sin nombre' || l.email || l.telefono; });
 
-    if(leadsToImport.length===0){ alert('No hay filas vÃ¡lidas para importar.'); btn.disabled=false; btn.textContent='Importar'; return; }
+    if(leadsToImport.length===0){ alert('No hay filas válidas para importar.'); btn.disabled=false; btn.textContent='Importar'; return; }
 
     sb('leads', {method:'POST', headers:{'Content-Type':'application/json', Prefer:'return=minimal'}, body: JSON.stringify(leadsToImport)})
       .then(function(){
@@ -1812,11 +1812,11 @@
     return '';
   }
 
-  // ---- Licitaciones pÃºblicas (envÃ­o manual) ----
+  // ---- Licitaciones públicas (envío manual) ----
   function parseLicitacion(notas){
     var txt = String(notas||'');
     var contrato = '', organo = '', puesto = '';
-    var mGano = txt.match(/Gan[oÃ³]\s+"([^"]*)"\s+de\s+([^.]*?)(?:\.|$)/i);
+    var mGano = txt.match(/Gan[oó]\s+"([^"]*)"\s+de\s+([^.]*?)(?:\.|$)/i);
     if(mGano){ contrato = mGano[1]; organo = mGano[2]; }
     var mPuesto = txt.match(/Dirigirse a:\s*([^.]*)\./i);
     if(mPuesto) puesto = mPuesto[1];
@@ -1826,26 +1826,26 @@
   function renderLicitaciones(){
     var list = leads.filter(esLicitacion).sort(function(a,b){ return (b.id||0) - (a.id||0); });
     if(list.length === 0){
-      elLicitaciones.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No hay empresas de licitaciones pÃºblicas pendientes ahora mismo</div></div>';
+      elLicitaciones.innerHTML = '<div class="empty-state"><div style="font-weight:600;color:var(--text)">No hay empresas de licitaciones públicas pendientes ahora mismo</div></div>';
       return;
     }
     var rows = list.map(function(l){
       var info = parseLicitacion(l.notas);
-      var asunto = encodeURIComponent('ColaboraciÃ³n en '+(info.contrato ? info.contrato.slice(0,60) : 'vuestro proyecto'));
+      var asunto = encodeURIComponent('Colaboración en '+(info.contrato ? info.contrato.slice(0,60) : 'vuestro proyecto'));
       var cuerpo = encodeURIComponent('Hola,\n\nOs escribo desde Klyrex...');
       return '<tr>' +
         '<td style="font-weight:600">'+esc(l.nombre)+'</td>' +
         '<td>'+esc(l.ciudad)+'</td>' +
-        '<td>'+esc(info.puesto||'â€”')+'</td>' +
-        '<td>'+esc(info.contrato||'â€”')+'</td>' +
-        '<td>'+esc(info.organo||'â€”')+'</td>' +
-        '<td><a href="mailto:'+esc(l.email)+'?subject='+asunto+'&body='+cuerpo+'" class="btn sm" onclick="event.stopPropagation()">âœ‰ '+esc(l.email)+'</a></td>' +
+        '<td>'+esc(info.puesto||'—')+'</td>' +
+        '<td>'+esc(info.contrato||'—')+'</td>' +
+        '<td>'+esc(info.organo||'—')+'</td>' +
+        '<td><a href="mailto:'+esc(l.email)+'?subject='+asunto+'&body='+cuerpo+'" class="btn sm" onclick="event.stopPropagation()">✉ '+esc(l.email)+'</a></td>' +
       '</tr>';
     }).join('');
     elLicitaciones.innerHTML =
-      '<div style="margin-bottom:10px;color:var(--text-dim);font-size:13px">Empresas que han ganado licitaciones pÃºblicas relacionadas con webs, chatbots, renders 3D, automatizaciones o RRSS. No estÃ¡n en ninguna campaÃ±a: escrÃ­beles tÃº a mano con el botÃ³n de email.</div>'+
+      '<div style="margin-bottom:10px;color:var(--text-dim);font-size:13px">Empresas que han ganado licitaciones públicas relacionadas con webs, chatbots, renders 3D, automatizaciones o RRSS. No están en ninguna campaña: escríbeles tú a mano con el botón de email.</div>'+
       '<div class="table-wrap"><table class="contactos"><thead><tr>'+
-        '<th>Empresa</th><th>Ciudad</th><th>Puesto a quien dirigirse</th><th>Contrato ganado</th><th>Ã“rgano contratante</th><th>Email</th>'+
+        '<th>Empresa</th><th>Ciudad</th><th>Puesto a quien dirigirse</th><th>Contrato ganado</th><th>Órgano contratante</th><th>Email</th>'+
       '</tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
 
